@@ -3,6 +3,8 @@
  * Mirrors OpenCLI's template system — sandboxed evaluation.
  */
 
+import { walkPath } from '../utils/walk-path.js'
+
 const BLOCKED_PATTERNS = /constructor|prototype|__proto__|process|require|import|eval|Function/
 
 const MAX_EXPR_LENGTH = 2000
@@ -128,18 +130,6 @@ function resolvePath(path: string, ctx: TemplateContext): unknown {
   }
 
   return walkPath(value, segments.slice(1))
-}
-
-function walkPath(value: unknown, segments: string[]): unknown {
-  for (const segment of segments) {
-    if (value === null || value === undefined) return undefined
-    if (typeof value === 'object') {
-      value = (value as Record<string, unknown>)[segment]
-    } else {
-      return undefined
-    }
-  }
-  return value
 }
 
 function compare(left: unknown, right: unknown, op: string): boolean {

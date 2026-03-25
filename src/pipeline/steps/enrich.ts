@@ -4,6 +4,7 @@
  */
 
 import { renderTemplate, renderObject } from '../template.js'
+import { walkPath } from '../../utils/walk-path.js'
 
 interface EnrichSource {
   name: string
@@ -78,18 +79,4 @@ export async function executeEnrich(
   })
 
   return Promise.all(promises)
-}
-
-function walkPath(value: unknown, segments: string[]): unknown {
-  for (const segment of segments) {
-    if (value === null || value === undefined) return undefined
-    if (Array.isArray(value) && /^\d+$/.test(segment)) {
-      value = value[parseInt(segment, 10)]
-    } else if (typeof value === 'object') {
-      value = (value as Record<string, unknown>)[segment]
-    } else {
-      return undefined
-    }
-  }
-  return value
 }
