@@ -56,6 +56,7 @@ function scanTs(providerDir: string, provider: string): ManifestEntry[] {
       const cliStart = content.search(/cli\s*\(\s*\{/)
       if (cliStart === -1) continue
       const cliSection = content.slice(cliStart, cliStart + 500)
+      const providerMatch = cliSection.match(/provider:\s*['"](.+?)['"]/)
       const nameMatch = cliSection.match(/name:\s*['"](.+?)['"]/)
       const descMatch = cliSection.match(/description:\s*['"](.+?)['"]/)
       const strategyMatch = cliSection.match(/strategy:\s*Strategy\.(\w+)/)
@@ -66,7 +67,7 @@ function scanTs(providerDir: string, provider: string): ManifestEntry[] {
       const modulePath = relative(__dirname, join(providerDir, jsFile))
 
       entries.push({
-        provider,
+        provider: providerMatch?.[1] ?? provider,
         name: nameMatch[1],
         description: descMatch?.[1] ?? '',
         strategy: strategyMatch?.[1] ?? 'FREE',
@@ -104,8 +105,10 @@ function buildManifest(): void {
 
     for (const entry of tsEntries) {
       const key = `${entry.provider}/${entry.name}`
-      seenKeys.add(key)
-      entries.push(entry)
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key)
+        entries.push(entry)
+      }
     }
 
     for (const entry of yamlEntries) {

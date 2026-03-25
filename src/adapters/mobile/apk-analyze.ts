@@ -4,6 +4,7 @@
  * Source: pentest-mobile-app
  */
 
+import { existsSync } from 'node:fs'
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
 import { runTool, findAvailableTool, checkToolInstalled } from '../_utils/tool-runner.js'
@@ -21,6 +22,9 @@ cli({
 
   async func(ctx: ExecContext, args: Record<string, unknown>) {
     const apk = args.apk as string
+    if (!existsSync(apk)) {
+      throw new Error(`APK file not found: ${apk}`)
+    }
     const results: Record<string, unknown>[] = []
 
     // aapt2 for manifest info

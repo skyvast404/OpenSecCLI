@@ -50,30 +50,42 @@ export async function findAvailableTool(tools: string[]): Promise<string | null>
 
 /**
  * Run an external CLI tool and return raw stdout/stderr.
+ * Uses a manual Promise wrapper so we can close stdin immediately,
+ * preventing tools that read stdin (httpx, nuclei) from hanging.
  */
 export async function runTool(opts: ToolRunOptions): Promise<ToolRunResult> {
   const timeout = (opts.timeout ?? 120) * 1000
   const maxBuffer = opts.maxBuffer ?? 50 * 1024 * 1024
 
-  try {
-    const { stdout, stderr } = await execFileAsync(opts.tool, opts.args, {
-      cwd: opts.cwd,
-      timeout,
-      maxBuffer,
-      env: opts.env ? { ...process.env, ...opts.env } : undefined,
-    })
-    return { stdout: stdout ?? '', stderr: stderr ?? '', exitCode: 0 }
-  } catch (error) {
-    const err = error as { stdout?: string; stderr?: string; code?: number; message: string }
-    if (opts.allowNonZero && err.stdout) {
-      return {
-        stdout: err.stdout ?? '',
-        stderr: err.stderr ?? '',
-        exitCode: err.code ?? 1,
-      }
-    }
-    throw error
-  }
+  return new Promise((resolve, reject) => {
+    const child = execFile(
+      opts.tool,
+      opts.args,
+      {
+        cwd: opts.cwd,
+        timeout,
+        maxBuffer,
+        env: opts.env ? { ...process.env, ...opts.env } : undefined,
+      },
+      (error, stdout, stderr) => {
+        if (error && !opts.allowNonZero) {
+          reject(error)
+          return
+        }
+        if (error && opts.allowNonZero) {
+          resolve({
+            stdout: stdout ?? '',
+            stderr: stderr ?? '',
+            exitCode: (error as any).code ?? 1,
+          })
+          return
+        }
+        resolve({ stdout: stdout ?? '', stderr: stderr ?? '', exitCode: 0 })
+      },
+    )
+    // Close stdin immediately so tools that read stdin (httpx, nuclei) don't hang
+    child.stdin?.end()
+  })
 }
 
 /**
