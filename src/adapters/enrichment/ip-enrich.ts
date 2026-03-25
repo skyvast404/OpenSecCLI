@@ -62,6 +62,7 @@ cli({
   name: 'ip-enrich',
   description: 'Enrich IP address from multiple threat intelligence sources in parallel',
   strategy: Strategy.FREE,
+  domain: 'threat-intel',
   args: {
     ip: { type: 'string', required: true, help: 'IP address to enrich' },
   },

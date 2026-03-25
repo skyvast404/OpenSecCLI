@@ -34,6 +34,7 @@ cli({
   name: 'cors-check',
   description: 'Test for CORS misconfigurations (reflected origin, null bypass, wildcard)',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     url: { type: 'string', required: true, help: 'Target URL to test' },
   },

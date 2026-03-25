@@ -4,6 +4,7 @@ name: host-lookup
 description: Look up host information on Shodan
 strategy: API_KEY
 auth: shodan
+domain: threat-intel
 
 args:
   ip:

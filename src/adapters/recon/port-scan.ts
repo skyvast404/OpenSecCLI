@@ -15,6 +15,7 @@ cli({
   name: 'port-scan',
   description: 'Scan target host for open ports and services using nmap/masscan',
   strategy: Strategy.FREE,
+  domain: 'recon',
   args: {
     target: { type: 'string', required: true, help: 'Target IP, hostname, or CIDR range' },
     ports: { type: 'string', required: false, default: 'top-1000', help: 'Port range (e.g., "80,443", "1-65535", "top-1000")' },

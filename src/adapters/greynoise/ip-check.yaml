@@ -4,6 +4,7 @@ name: ip-check
 description: Check IP noise classification on GreyNoise
 strategy: API_KEY
 auth: greynoise
+domain: threat-intel
 
 args:
   ip:

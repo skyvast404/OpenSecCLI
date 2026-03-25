@@ -109,6 +109,7 @@ cli({
   name: 'binary-check',
   description: 'Check binary security protections (RELRO, canary, NX, PIE) using checksec',
   strategy: Strategy.FREE,
+  domain: 'forensics',
   args: {
     file: { type: 'string', required: true, help: 'Path to binary file' },
   },

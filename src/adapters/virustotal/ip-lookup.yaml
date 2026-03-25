@@ -3,6 +3,7 @@ name: ip-lookup
 description: Look up IP address reputation on VirusTotal
 strategy: API_KEY
 auth: virustotal
+domain: threat-intel
 
 args:
   ip:

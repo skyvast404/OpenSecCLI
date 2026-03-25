@@ -63,6 +63,7 @@ cli({
   name: 'hash-id',
   description: 'Identify hash type and suggest hashcat/john formats',
   strategy: Strategy.FREE,
+  domain: 'forensics',
   args: {
     hash: { type: 'string', required: true, help: 'Hash string to identify' },
   },

@@ -15,6 +15,7 @@ cli({
   name: 'nuclei-scan',
   description: 'Run nuclei vulnerability scanner against target URL(s)',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     target: { type: 'string', required: true, help: 'Target URL or file with URLs' },
     templates: { type: 'string', required: false, help: 'Template tags to use (e.g., "cve,misconfig")' },

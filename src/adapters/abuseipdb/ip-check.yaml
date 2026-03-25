@@ -3,6 +3,7 @@ name: ip-check
 description: Check IP reputation on AbuseIPDB
 strategy: API_KEY
 auth: abuseipdb
+domain: threat-intel
 
 args:
   ip:

@@ -199,6 +199,7 @@ cli({
   name: 'entrypoints',
   description: 'Find HTTP routes, RPC handlers, and other entry points in a codebase',
   strategy: Strategy.FREE,
+  domain: 'code-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to project root' },
     language: { type: 'string', required: false, help: 'Filter by language (python/javascript/typescript/java/php)' },

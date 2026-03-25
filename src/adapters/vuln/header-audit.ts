@@ -13,6 +13,7 @@ cli({
   name: 'header-audit',
   description: 'Audit HTTP security headers (HSTS, CSP, X-Frame-Options, etc.)',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     url: { type: 'string', required: true, help: 'Target URL to audit' },
   },

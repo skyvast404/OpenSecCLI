@@ -125,6 +125,7 @@ cli({
   name: 'discover',
   description: 'Build security-focused project map: languages, frameworks, entry points, git signals',
   strategy: Strategy.FREE,
+  domain: 'code-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to project root' },
     max_commits: { type: 'number', required: false, default: 80, help: 'Max git commits to scan' },

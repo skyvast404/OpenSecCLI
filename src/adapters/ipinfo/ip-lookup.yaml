@@ -4,6 +4,7 @@ name: ip-lookup
 description: Get IP geolocation and ASN info from ipinfo.io
 strategy: API_KEY
 auth: ipinfo
+domain: threat-intel
 
 args:
   ip:

@@ -32,11 +32,16 @@ export function createCli(version: string): Command {
   program
     .command('list')
     .description('List all available commands')
-    .action(() => {
+    .option('--domain <domain>', 'filter by domain (e.g., recon, threat-intel, vuln-scan)')
+    .action((opts: { domain?: string }) => {
       const registry = getRegistry()
+      const domainFilter = opts.domain?.toLowerCase()
+
       const commands = [...registry.values()]
+        .filter(cmd => !domainFilter || cmd.domain === domainFilter)
         .map(cmd => ({
           command: `opensec ${cmd.provider} ${cmd.name}`,
+          domain: cmd.domain ?? '-',
           description: cmd.description,
           strategy: cmd.strategy,
           auth: cmd.auth ?? (cmd.strategy === 'FREE' ? '-' : cmd.provider),
@@ -46,7 +51,7 @@ export function createCli(version: string): Command {
       const format = program.opts().json ? 'json' : (program.opts().format ?? 'table')
       render(commands, {
         format: format as any,
-        columns: ['command', 'description', 'strategy', 'auth'],
+        columns: ['command', 'domain', 'description', 'strategy', 'auth'],
       })
     })
 

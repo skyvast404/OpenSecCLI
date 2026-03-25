@@ -15,6 +15,7 @@ cli({
   name: 'nikto-scan',
   description: 'Run Nikto web server scanner for misconfigurations and vulnerabilities',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     target: { type: 'string', required: true, help: 'Target URL or host' },
     tuning: { type: 'string', required: false, help: 'Scan tuning (e.g., "1234" for specific test types)' },

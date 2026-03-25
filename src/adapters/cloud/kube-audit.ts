@@ -92,6 +92,7 @@ cli({
   name: 'kube-audit',
   description: 'Audit Kubernetes cluster security using kube-bench/kube-hunter',
   strategy: Strategy.FREE,
+  domain: 'cloud-security',
   args: {
     target: {
       type: 'string',

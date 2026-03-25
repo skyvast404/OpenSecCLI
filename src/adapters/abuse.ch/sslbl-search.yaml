@@ -2,6 +2,7 @@ provider: abuse.ch
 name: sslbl-search
 description: Search malicious SSL certificates in SSLBL
 strategy: FREE
+domain: threat-intel
 
 args:
   hash:

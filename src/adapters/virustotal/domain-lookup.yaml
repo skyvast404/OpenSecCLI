@@ -3,6 +3,7 @@ name: domain-lookup
 description: Look up domain reputation on VirusTotal
 strategy: API_KEY
 auth: virustotal
+domain: threat-intel
 
 args:
   domain:

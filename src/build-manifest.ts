@@ -29,6 +29,7 @@ function scanYaml(providerDir: string, provider: string): ManifestEntry[] {
         description: (def.description as string) ?? '',
         strategy: (def.strategy as string) ?? 'FREE',
         auth: def.auth as string | undefined,
+        domain: def.domain as string | undefined,
         args: (def.args as Record<string, Arg>) ?? {},
         columns: (def.columns as string[]) ?? [],
         timeout: def.timeout as number | undefined,
@@ -60,6 +61,7 @@ function scanTs(providerDir: string, provider: string): ManifestEntry[] {
       const nameMatch = cliSection.match(/name:\s*['"](.+?)['"]/)
       const descMatch = cliSection.match(/description:\s*['"](.+?)['"]/)
       const strategyMatch = cliSection.match(/strategy:\s*Strategy\.(\w+)/)
+      const domainMatch = cliSection.match(/domain:\s*['"](.+?)['"]/)
 
       if (!nameMatch) continue
 
@@ -71,6 +73,7 @@ function scanTs(providerDir: string, provider: string): ManifestEntry[] {
         name: nameMatch[1],
         description: descMatch?.[1] ?? '',
         strategy: strategyMatch?.[1] ?? 'FREE',
+        domain: domainMatch?.[1],
         args: {},  // TS args are registered at runtime
         columns: [],
         source: 'typescript',

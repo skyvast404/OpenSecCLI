@@ -19,6 +19,7 @@ cli({
   name: 'sbom',
   description: 'Generate Software Bill of Materials (SBOM) for a project',
   strategy: Strategy.FREE,
+  domain: 'supply-chain',
   args: {
     path: { type: 'string', required: true, help: 'Project root or container image' },
     format: { type: 'string', default: 'json', choices: ['json', 'cyclonedx-json', 'spdx-json'], help: 'Output format' },

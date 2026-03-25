@@ -16,6 +16,7 @@ cli({
   name: 'content-discover',
   description: 'Discover hidden endpoints, directories, and files via fuzzing',
   strategy: Strategy.FREE,
+  domain: 'recon',
   args: {
     url: { type: 'string', required: true, help: 'Target URL (use FUZZ as placeholder, e.g., https://example.com/FUZZ)' },
     wordlist: { type: 'string', required: false, help: 'Path to wordlist (default: tool built-in)' },

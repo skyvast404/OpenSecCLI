@@ -2,6 +2,7 @@ provider: abuse.ch
 name: threatfox-search
 description: Search IOCs (IP, domain, hash) in ThreatFox
 strategy: FREE
+domain: threat-intel
 
 args:
   ioc:

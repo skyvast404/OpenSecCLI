@@ -102,6 +102,7 @@ cli({
   name: 'ci-audit',
   description: 'Audit CI/CD pipeline configs for security issues (GitHub Actions, GitLab CI)',
   strategy: Strategy.FREE,
+  domain: 'supply-chain',
   args: {
     path: { type: 'string', required: true, help: 'Project root path' },
   },

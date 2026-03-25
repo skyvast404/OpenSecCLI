@@ -85,6 +85,7 @@ cli({
   name: 'container-scan',
   description: 'Scan container images for vulnerabilities using trivy/grype',
   strategy: Strategy.FREE,
+  domain: 'cloud-security',
   args: {
     image: { type: 'string', required: true, help: 'Container image to scan (e.g., nginx:latest)' },
     severity: {

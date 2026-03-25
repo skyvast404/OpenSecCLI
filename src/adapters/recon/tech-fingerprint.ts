@@ -16,6 +16,7 @@ cli({
   name: 'tech-fingerprint',
   description: 'Identify technologies, web servers, and frameworks on target URLs',
   strategy: Strategy.FREE,
+  domain: 'recon',
   args: {
     target: { type: 'string', required: true, help: 'URL or file with URLs (one per line)' },
   },

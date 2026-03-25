@@ -2,6 +2,7 @@ provider: abuse.ch
 name: urlhaus-query
 description: Check if a URL is in the URLhaus malicious URL database
 strategy: FREE
+domain: threat-intel
 
 args:
   url:

@@ -91,6 +91,7 @@ cli({
   name: 'git-signals',
   description: 'Extract security-relevant commits from git history',
   strategy: Strategy.FREE,
+  domain: 'code-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to git repository' },
     max_commits: { type: 'number', required: false, default: 80, help: 'Max commits to scan (default: 80)' },

@@ -22,6 +22,7 @@ cli({
   name: 'dep-audit',
   description: 'Audit dependencies for known vulnerabilities (npm, pip, trivy)',
   strategy: Strategy.FREE,
+  domain: 'supply-chain',
   args: {
     path: { type: 'string', required: true, help: 'Project root path' },
   },

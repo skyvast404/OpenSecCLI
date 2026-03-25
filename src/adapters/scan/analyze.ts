@@ -127,6 +127,7 @@ cli({
   description:
     'Run static security analysis (semgrep, gitleaks) on a codebase',
   strategy: Strategy.FREE,
+  domain: 'code-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to project root' },
     tools: {

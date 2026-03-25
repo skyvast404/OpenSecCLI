@@ -15,6 +15,7 @@ cli({
   name: 'tls-check',
   description: 'Check TLS/SSL configuration for weak ciphers, protocols, and certificate issues',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     host: { type: 'string', required: true, help: 'Target hostname[:port] (default port 443)' },
   },

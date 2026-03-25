@@ -2,6 +2,7 @@ provider: abuse.ch
 name: feodo-list
 description: List recently active botnet C&C servers from Feodo Tracker
 strategy: FREE
+domain: threat-intel
 
 args:
   limit:

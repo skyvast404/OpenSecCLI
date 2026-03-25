@@ -23,6 +23,7 @@ export interface CliCommand {
   description: string
   strategy: Strategy
   auth?: string
+  domain?: string
   func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<unknown>
   pipeline?: PipelineStep[]
   args: Record<string, Arg>
@@ -37,6 +38,7 @@ export interface CliOptions {
   description?: string
   strategy?: Strategy
   auth?: string
+  domain?: string
   func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<unknown>
   pipeline?: PipelineStep[]
   args?: Record<string, Arg>
@@ -88,6 +90,7 @@ export interface ManifestEntry {
   description: string
   strategy: string
   auth?: string
+  domain?: string
   args: Record<string, Arg>
   columns: string[]
   timeout?: number

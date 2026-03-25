@@ -22,6 +22,7 @@ export function cli(options: CliOptions): CliCommand {
     description: options.description ?? '',
     strategy: options.strategy ?? Strategy.FREE,
     auth: options.auth,
+    domain: options.domain,
     func: options.func,
     pipeline: options.pipeline,
     args: options.args ?? {},

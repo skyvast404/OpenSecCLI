@@ -83,6 +83,7 @@ cli({
   name: 'iac-scan',
   description: 'Scan Infrastructure-as-Code files for misconfigurations using checkov/terrascan',
   strategy: Strategy.FREE,
+  domain: 'cloud-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to IaC files or directory' },
     framework: {

@@ -37,6 +37,7 @@ cli({
   name: 'full',
   description: 'Run full security scan pipeline: discover → analyze → report',
   strategy: Strategy.FREE,
+  domain: 'code-security',
   args: {
     path: { type: 'string', required: true, help: 'Path to project root' },
     output_dir: { type: 'string', required: false, default: './scan-results', help: 'Output directory for reports' },

@@ -33,6 +33,7 @@ cli({
   name: 'trufflehog-scan',
   description: 'Scan git repository for secrets using TruffleHog (entropy + pattern detection)',
   strategy: Strategy.FREE,
+  domain: 'secrets',
   args: {
     path: { type: 'string', required: true, help: 'Path to git repository' },
     only_verified: { type: 'boolean', default: false, help: 'Only show verified (active) secrets' },

@@ -92,6 +92,7 @@ cli({
   name: 'pcap-summary',
   description: 'Summarize PCAP network capture: protocol hierarchy, DNS queries, IP conversations',
   strategy: Strategy.FREE,
+  domain: 'forensics',
   args: {
     file: { type: 'string', required: true, help: 'Path to PCAP file' },
     filter: { type: 'string', required: false, help: 'Display filter (tshark syntax)' },

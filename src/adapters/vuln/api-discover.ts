@@ -14,6 +14,7 @@ cli({
   name: 'api-discover',
   description: 'Discover API endpoints using kiterunner or ffuf with API wordlists',
   strategy: Strategy.FREE,
+  domain: 'vuln-scan',
   args: {
     target: { type: 'string', required: true, help: 'Target URL' },
     wordlist: { type: 'string', required: false, help: 'API wordlist path' },

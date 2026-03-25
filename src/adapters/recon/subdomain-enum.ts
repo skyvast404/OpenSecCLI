@@ -14,6 +14,7 @@ cli({
   name: 'subdomain-enum',
   description: 'Enumerate subdomains for a target domain using subfinder/amass',
   strategy: Strategy.FREE,
+  domain: 'recon',
   args: {
     domain: { type: 'string', required: true, help: 'Target domain (e.g., example.com)' },
     recursive: { type: 'boolean', default: false, help: 'Enable recursive enumeration' },

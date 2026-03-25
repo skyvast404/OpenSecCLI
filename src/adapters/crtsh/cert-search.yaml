@@ -2,6 +2,7 @@ provider: crtsh
 name: cert-search
 description: Search certificate transparency logs for a domain via crt.sh
 strategy: FREE
+domain: threat-intel
 
 args:
   domain:

@@ -104,6 +104,7 @@ cli({
   name: 'file-analyze',
   description: 'Analyze a file using file, exiftool, strings, and binwalk in parallel',
   strategy: Strategy.FREE,
+  domain: 'forensics',
   args: {
     file: { type: 'string', required: true, help: 'Path to file to analyze' },
   },
