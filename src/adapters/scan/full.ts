@@ -4,23 +4,12 @@
  * Coordinates all security analysis tools and produces unified reports.
  */
 
-import { cli, Strategy } from '../../registry.js'
+import { cli, Strategy, getRegistry } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
-import type { RawFinding } from './types.js'
-import {
-  parseSemgrepOutput,
-  parseGitleaksOutput,
-  parseNpmAuditOutput,
-  normalizeFindings,
-  deduplicateFindings,
-} from './analyze.js'
+import type { RawFinding, Severity } from './types.js'
 import { buildJsonReport, buildSarifReport, buildMarkdownReport } from './report.js'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-
-const execFileAsync = promisify(execFile)
 
 export function buildScanSummary(
   findings: RawFinding[],
@@ -40,15 +29,6 @@ export function buildScanSummary(
     medium: findings.filter(f => f.severity === 'medium').length,
     low: findings.filter(f => f.severity === 'low').length,
     duration_ms: durationMs,
-  }
-}
-
-async function toolExists(name: string): Promise<boolean> {
-  try {
-    await execFileAsync('which', [name])
-    return true
-  } catch {
-    return false
   }
 }
 
@@ -79,54 +59,27 @@ cli({
     ctx.log.step(2, 3, 'Analysis')
     const allFindings: RawFinding[] = []
 
-    // Run available tools in parallel
-    const tasks: Array<Promise<{ tool: string; findings: RawFinding[] }>> = []
-
-    if (await toolExists('semgrep')) {
-      tasks.push(
-        (async () => {
-          try {
-            const { stdout } = await execFileAsync(
-              'semgrep', ['scan', '--json', '--config', 'auto', repoPath],
-              { maxBuffer: 50 * 1024 * 1024, timeout: 120_000 },
-            )
-            return { tool: 'semgrep', findings: parseSemgrepOutput(JSON.parse(stdout)) }
-          } catch {
-            return { tool: 'semgrep', findings: [] }
-          }
-        })(),
-      )
-    }
-
-    if (await toolExists('gitleaks')) {
-      tasks.push(
-        (async () => {
-          try {
-            const { stdout } = await execFileAsync(
-              'gitleaks', ['detect', '--source', repoPath, '--report-format', 'json', '--report-path', '/dev/stdout', '--no-banner'],
-              { maxBuffer: 10 * 1024 * 1024, timeout: 60_000 },
-            )
-            return { tool: 'gitleaks', findings: parseGitleaksOutput(JSON.parse(stdout || '[]')) }
-          } catch {
-            return { tool: 'gitleaks', findings: [] }
-          }
-        })(),
-      )
-    }
-
-    const results = await Promise.allSettled(tasks)
-    const toolsRun: string[] = []
-
-    for (const r of results) {
-      if (r.status === 'fulfilled') {
-        allFindings.push(...r.value.findings)
-        toolsRun.push(r.value.tool)
+    const analyzeCmd = getRegistry().get('scan/analyze')
+    if (analyzeCmd?.func) {
+      const analyzeResult = await analyzeCmd.func(ctx, { path: repoPath, tools: 'auto' })
+      if (Array.isArray(analyzeResult)) {
+        for (const r of analyzeResult as Array<Record<string, unknown>>) {
+          allFindings.push({
+            rule_id: (r.rule_id as string) ?? '',
+            severity: (r.severity as Severity) ?? 'medium',
+            message: (r.message as string) ?? '',
+            file_path: (r.file_path as string) ?? '',
+            start_line: (r.start_line as number) ?? 0,
+            cwe: (r.cwe as string) ?? '',
+            tools_used: typeof r.tools_used === 'string' ? (r.tools_used as string).split(', ') : [],
+          })
+        }
       }
     }
 
-    const deduped = deduplicateFindings(normalizeFindings(allFindings))
+    const deduped = allFindings  // already deduped by scan/analyze
     stages[0] = { stage: 'Discovery', status: 'done', detail: `scanned ${repoPath}` }
-    stages.push({ stage: 'Analysis', status: 'done', detail: `${deduped.length} findings from ${toolsRun.join(', ') || 'no tools'}` })
+    stages.push({ stage: 'Analysis', status: 'done', detail: `${deduped.length} findings` })
 
     // Stage 3: Report
     ctx.log.step(3, 3, 'Report')
