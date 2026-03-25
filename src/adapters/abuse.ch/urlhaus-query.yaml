@@ -1,0 +1,31 @@
+provider: abuse.ch
+name: urlhaus-query
+description: Check if a URL is in the URLhaus malicious URL database
+strategy: FREE
+
+args:
+  url:
+    type: string
+    required: true
+    help: URL to check
+
+pipeline:
+  - request:
+      url: https://urlhaus-api.abuse.ch/v1/url/
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body:
+        url: "{{ args.url }}"
+
+  - map:
+      template:
+        url: "{{ item.url }}"
+        status: "{{ item.url_status }}"
+        threat: "{{ item.threat }}"
+        tags: "{{ item.tags }}"
+        date_added: "{{ item.date_added }}"
+        reporter: "{{ item.reporter }}"
+        takedown_time: "{{ item.takedown_time_seconds }}"
+
+columns: [url, status, threat, tags, date_added, reporter]

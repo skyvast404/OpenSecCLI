@@ -1,0 +1,29 @@
+provider: abuse.ch
+name: feodo-list
+description: List recently active botnet C&C servers from Feodo Tracker
+strategy: FREE
+
+args:
+  limit:
+    type: number
+    default: 20
+    help: Maximum number of entries to show
+
+pipeline:
+  - request:
+      url: https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.json
+
+  - limit:
+      count: "{{ args.limit }}"
+
+  - map:
+      template:
+        ip: "{{ item.ip_address }}"
+        port: "{{ item.port }}"
+        status: "{{ item.status }}"
+        malware: "{{ item.malware }}"
+        first_seen: "{{ item.first_seen }}"
+        last_online: "{{ item.last_online }}"
+        country: "{{ item.country }}"
+
+columns: [ip, port, malware, status, first_seen, last_online, country]

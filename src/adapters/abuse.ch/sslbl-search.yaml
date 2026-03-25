@@ -1,0 +1,29 @@
+provider: abuse.ch
+name: sslbl-search
+description: Search malicious SSL certificates in SSLBL
+strategy: FREE
+
+args:
+  hash:
+    type: string
+    required: true
+    help: SHA1 fingerprint of the SSL certificate
+
+pipeline:
+  - request:
+      url: https://sslbl.abuse.ch/intel/
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body:
+        sha1: "{{ args.hash }}"
+
+  - map:
+      template:
+        sha1: "{{ item.sha1 }}"
+        subject: "{{ item.subject }}"
+        issuer: "{{ item.issuer }}"
+        reason: "{{ item.reason }}"
+        listing_date: "{{ item.listing_date }}"
+
+columns: [sha1, subject, issuer, reason, listing_date]

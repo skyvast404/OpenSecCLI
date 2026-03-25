@@ -1,0 +1,37 @@
+provider: crtsh
+name: cert-search
+description: Search certificate transparency logs for a domain via crt.sh
+strategy: FREE
+
+args:
+  domain:
+    type: string
+    required: true
+    help: Domain to search (e.g., example.com)
+  limit:
+    type: number
+    default: 20
+    help: Maximum results to return
+
+pipeline:
+  - request:
+      url: "https://crt.sh/?q={{ args.domain | urlencode }}&output=json"
+      timeout: 15
+
+  - sort:
+      key: id
+      reverse: true
+
+  - limit:
+      count: "{{ args.limit }}"
+
+  - map:
+      template:
+        id: "{{ item.id }}"
+        common_name: "{{ item.common_name }}"
+        issuer: "{{ item.issuer_name | truncate(60) }}"
+        not_before: "{{ item.not_before }}"
+        not_after: "{{ item.not_after }}"
+        serial: "{{ item.serial_number }}"
+
+columns: [id, common_name, issuer, not_before, not_after]

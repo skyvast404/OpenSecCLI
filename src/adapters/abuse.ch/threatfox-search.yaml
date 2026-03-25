@@ -1,0 +1,37 @@
+provider: abuse.ch
+name: threatfox-search
+description: Search IOCs (IP, domain, hash) in ThreatFox
+strategy: FREE
+
+args:
+  ioc:
+    type: string
+    required: true
+    help: IOC to search (IP, domain, hash, URL)
+
+pipeline:
+  - request:
+      url: https://threatfox-api.abuse.ch/api/v1/
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        query: search_ioc
+        search_term: "{{ args.ioc }}"
+
+  - select:
+      path: data
+
+  - map:
+      template:
+        ioc: "{{ item.ioc }}"
+        ioc_type: "{{ item.ioc_type }}"
+        threat_type: "{{ item.threat_type }}"
+        malware: "{{ item.malware_printable }}"
+        confidence: "{{ item.confidence_level }}"
+        first_seen: "{{ item.first_seen_utc }}"
+        last_seen: "{{ item.last_seen_utc }}"
+        reporter: "{{ item.reporter }}"
+        tags: "{{ item.tags | join(', ') }}"
+
+columns: [ioc, ioc_type, threat_type, malware, confidence, first_seen, tags]
