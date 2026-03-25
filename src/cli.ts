@@ -7,7 +7,7 @@ import { Command } from 'commander'
 import chalk from 'chalk'
 import { getRegistry } from './registry.js'
 import { executeCommand } from './execution.js'
-import { listAuth, saveAuth, removeAuth } from './auth/index.js'
+import { listAuth, saveAuth, removeAuth, loadAuth } from './auth/index.js'
 import { render } from './output.js'
 import { CliError, ERROR_ICONS } from './errors.js'
 import { EXIT_CODES } from './constants.js'
@@ -102,6 +102,29 @@ export function createCli(version: string): Command {
         process.stderr.write(chalk.green(`✓ Credentials removed for ${provider}\n`))
       } else {
         process.stderr.write(chalk.yellow(`No credentials found for ${provider}\n`))
+      }
+    })
+
+  authCmd
+    .command('test <provider>')
+    .description('Test API key connectivity for a provider')
+    .action(async (provider: string) => {
+      const creds = loadAuth(provider)
+      if (!creds?.api_key) {
+        process.stderr.write(chalk.red(`No API key configured for ${provider}\n`))
+        process.stderr.write(chalk.gray(`Run: opensec auth add ${provider} --api-key\n`))
+        process.exit(EXIT_CODES.AUTH_FAILED)
+      }
+
+      process.stderr.write(`Testing ${provider}...`)
+      const { testAuth } = await import('./auth/test.js')
+      const result = await testAuth(provider, creds.api_key)
+
+      if (result.ok) {
+        process.stderr.write(chalk.green(` ✓ ${result.message}\n`))
+      } else {
+        process.stderr.write(chalk.red(` ✗ ${result.message}\n`))
+        process.exit(EXIT_CODES.AUTH_FAILED)
       }
     })
 
