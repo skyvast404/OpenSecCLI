@@ -10,7 +10,7 @@ import type { ExecContext } from '../../types.js'
 import { runTool, findAvailableTool, checkToolInstalled } from '../_utils/tool-runner.js'
 
 cli({
-  provider: 'mobile',
+  provider: 'forensics',
   name: 'apk-analyze',
   description: 'Analyze Android APK for security issues (permissions, exported components, hardcoded secrets)',
   strategy: Strategy.FREE,
