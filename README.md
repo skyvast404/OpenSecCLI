@@ -24,7 +24,9 @@ $ opensec nvd cve-get CVE-2024-3094
 
 ## Highlights
 
-- **16 adapters** across 10 security providers — 8 work with zero configuration
+- **46 commands** across 16 providers — recon, vuln scanning, secrets, supply-chain, cloud, forensics, and more
+- **6 pure-TypeScript adapters** with zero external dependencies (header-audit, cors-check, hash-id, http-request, race-test, ci-audit)
+- **6 Claude Code Skills** — AI-powered investigation workflows (IOC investigate, code audit, incident response, etc.)
 - **Multi-source enrichment** — query 5 threat intel APIs in parallel, get a consensus verdict
 - **One YAML file = one command** — contributors don't need to write TypeScript
 - **Pipe-native** — stdin/stdout, `--json`, `--silent`, compatible with ProjectDiscovery ecosystem
@@ -97,6 +99,83 @@ Only queries sources you have API keys for. ThreatFox is always free.
 | Command | Sources |
 |---------|---------|
 | `opensec enrichment ip-enrich <ip>` | AbuseIPDB + VirusTotal + GreyNoise + ipinfo + ThreatFox |
+
+### Recon
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec recon subdomain-enum <domain>` | subfinder / amass | Subdomain enumeration |
+| `opensec recon tech-fingerprint <target>` | httpx / whatweb | Technology fingerprinting |
+| `opensec recon port-scan <target>` | nmap / masscan | Port scanning |
+| `opensec recon content-discover <url>` | ffuf / dirsearch | Content / directory discovery |
+
+### Vulnerability Scanning
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec vuln nuclei-scan <target>` | nuclei | Template-based vulnerability scan |
+| `opensec vuln nikto-scan <target>` | nikto | Web server scanner |
+| `opensec vuln header-audit <url>` | pure TS | Security header analysis (zero deps) |
+| `opensec vuln tls-check <host>` | testssl.sh | TLS/SSL configuration check |
+| `opensec vuln cors-check <url>` | pure TS | CORS misconfiguration check (zero deps) |
+| `opensec vuln api-discover <url>` | kiterunner / ffuf | API endpoint discovery |
+
+### Secrets Detection
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec secrets trufflehog-scan <target>` | trufflehog | Secrets scanning in repos/filesystems |
+
+### Supply Chain
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy | Dependency vulnerability audit |
+| `opensec supply-chain ci-audit [path]` | pure TS | CI config security check (zero deps) |
+| `opensec supply-chain sbom [path]` | syft | Software bill of materials generation |
+
+### Cloud Security
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec cloud iac-scan [path]` | checkov / terrascan | Infrastructure-as-code scanning |
+| `opensec cloud container-scan <image>` | trivy / grype | Container image vulnerability scan |
+| `opensec cloud kube-audit` | kube-bench | Kubernetes CIS benchmark audit |
+
+### Forensics
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk | File metadata & content analysis |
+| `opensec forensics binary-check <binary>` | checksec | Binary security feature check |
+| `opensec forensics pcap-summary <pcap>` | tshark | PCAP traffic summary |
+| `opensec forensics apk-analyze <apk>` | aapt + strings | Android APK static analysis |
+
+### Crypto
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec crypto hash-id <hash>` | pure TS | Identify hash type + hashcat/john format (zero deps) |
+
+### Pentest Utilities
+
+| Command | Backend | Description |
+|---------|---------|-------------|
+| `opensec pentest http-request <url>` | pure TS | Crafted HTTP request sender (zero deps) |
+| `opensec pentest race-test <url>` | pure TS | Concurrent race condition tester (zero deps) |
+
+## Claude Code Skills
+
+Six AI-powered investigation workflows, available as Claude Code slash commands:
+
+| Skill | Description |
+|-------|-------------|
+| `ioc-investigate` | Deep-dive IOC analysis across multiple threat intel sources |
+| `code-security-audit` | Automated source code security review |
+| `incident-response` | Guided incident response triage and evidence collection |
+| `cve-impact-check` | Assess CVE impact on your infrastructure |
+| `attack-surface-map` | Map external attack surface for a domain/org |
+| `domain-recon` | Full domain reconnaissance and intelligence gathering |
 
 ## Output Formats
 

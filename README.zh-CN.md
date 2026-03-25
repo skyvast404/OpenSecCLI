@@ -24,7 +24,9 @@ $ opensec nvd cve-get CVE-2024-3094
 
 ## 亮点
 
-- **16 个适配器**，覆盖 10 个安全数据源 —— 其中 8 个零配置可用
+- **46 条命令**，覆盖 16 个提供商 —— 侦查、漏洞扫描、密钥检测、供应链、云安全、取证等全覆盖
+- **6 个纯 TypeScript 适配器**，零外部依赖（header-audit、cors-check、hash-id、http-request、race-test、ci-audit）
+- **6 个 Claude Code Skills** —— AI 驱动的调查工作流（IOC 调查、代码审计、应急响应等）
 - **多源聚合查询** —— 并行查 5 个威胁情报 API，输出共识判定
 - **一个 YAML = 一条命令** —— 贡献者不需要写 TypeScript
 - **原生管道** —— stdin/stdout、`--json`、`--silent`，兼容 ProjectDiscovery 生态
@@ -97,6 +99,83 @@ $ opensec enrichment ip-enrich 185.220.101.34
 | 命令 | 聚合数据源 |
 |------|-----------|
 | `opensec enrichment ip-enrich <ip>` | AbuseIPDB + VirusTotal + GreyNoise + ipinfo + ThreatFox |
+
+### 侦查（Recon）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec recon subdomain-enum <domain>` | subfinder / amass | 子域名枚举 |
+| `opensec recon tech-fingerprint <target>` | httpx / whatweb | 技术指纹识别 |
+| `opensec recon port-scan <target>` | nmap / masscan | 端口扫描 |
+| `opensec recon content-discover <url>` | ffuf / dirsearch | 目录/内容发现 |
+
+### 漏洞扫描（Vuln）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec vuln nuclei-scan <target>` | nuclei | 基于模板的漏洞扫描 |
+| `opensec vuln nikto-scan <target>` | nikto | Web 服务器扫描 |
+| `opensec vuln header-audit <url>` | 纯 TS | 安全响应头分析（零依赖） |
+| `opensec vuln tls-check <host>` | testssl.sh | TLS/SSL 配置检查 |
+| `opensec vuln cors-check <url>` | 纯 TS | CORS 配置错误检查（零依赖） |
+| `opensec vuln api-discover <url>` | kiterunner / ffuf | API 端点发现 |
+
+### 密钥检测（Secrets）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec secrets trufflehog-scan <target>` | trufflehog | 仓库/文件系统密钥扫描 |
+
+### 供应链（Supply Chain）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy | 依赖漏洞审计 |
+| `opensec supply-chain ci-audit [path]` | 纯 TS | CI 配置安全检查（零依赖） |
+| `opensec supply-chain sbom [path]` | syft | 软件物料清单生成 |
+
+### 云安全（Cloud）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec cloud iac-scan [path]` | checkov / terrascan | 基础设施即代码扫描 |
+| `opensec cloud container-scan <image>` | trivy / grype | 容器镜像漏洞扫描 |
+| `opensec cloud kube-audit` | kube-bench | Kubernetes CIS 基准审计 |
+
+### 取证（Forensics）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk | 文件元数据与内容分析 |
+| `opensec forensics binary-check <binary>` | checksec | 二进制安全特性检查 |
+| `opensec forensics pcap-summary <pcap>` | tshark | PCAP 流量摘要 |
+| `opensec forensics apk-analyze <apk>` | aapt + strings | Android APK 静态分析 |
+
+### 密码学（Crypto）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec crypto hash-id <hash>` | 纯 TS | 识别哈希类型 + hashcat/john 格式（零依赖） |
+
+### 渗透工具（Pentest）
+
+| 命令 | 后端 | 说明 |
+|------|------|------|
+| `opensec pentest http-request <url>` | 纯 TS | 构造 HTTP 请求发送（零依赖） |
+| `opensec pentest race-test <url>` | 纯 TS | 并发竞态条件测试（零依赖） |
+
+## Claude Code Skills
+
+六个 AI 驱动的调查工作流，可作为 Claude Code 斜杠命令使用：
+
+| Skill | 说明 |
+|-------|------|
+| `ioc-investigate` | 跨多个威胁情报源的 IOC 深度分析 |
+| `code-security-audit` | 自动化源代码安全审计 |
+| `incident-response` | 引导式应急响应分类与证据收集 |
+| `cve-impact-check` | 评估 CVE 对基础设施的影响 |
+| `attack-surface-map` | 映射域名/组织的外部攻击面 |
+| `domain-recon` | 全面域名侦查与情报收集 |
 
 ## 输出格式
 
