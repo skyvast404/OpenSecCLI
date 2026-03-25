@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool } from '../_utils/tool-runner.js'
 import { parseNmapOutput } from './parsers.js'
 
@@ -27,7 +28,7 @@ cli({
     const ports = args.ports as string
     const scanType = args.scan_type as string
     const tool = await findAvailableTool(['nmap', 'masscan'])
-    if (!tool) throw new Error('Install nmap or masscan to use this command.')
+    if (!tool) throw new ToolNotFoundError('nmap, masscan', 'nmap or masscan')
 
     if (tool === 'nmap') {
       const nmapArgs = ['-oX', '-', target]

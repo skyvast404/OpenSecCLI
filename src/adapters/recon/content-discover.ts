@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool } from '../_utils/tool-runner.js'
 import { parseFfufOutput } from './parsers.js'
 import { parseJsonLines } from '../_utils/tool-runner.js'
@@ -31,7 +32,7 @@ cli({
     const threads = args.threads as number
 
     const tool = await findAvailableTool(['ffuf', 'dirsearch', 'feroxbuster'])
-    if (!tool) throw new Error('Install ffuf, dirsearch, or feroxbuster to use this command.')
+    if (!tool) throw new ToolNotFoundError('ffuf, dirsearch, feroxbuster', 'ffuf, dirsearch, or feroxbuster')
 
     try {
       if (tool === 'ffuf') {

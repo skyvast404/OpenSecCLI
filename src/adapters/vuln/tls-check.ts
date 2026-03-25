@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool } from '../_utils/tool-runner.js'
 import { parseTlsCheckOutput } from './parsers.js'
 
@@ -23,7 +24,7 @@ cli({
   async func(ctx: ExecContext, args: Record<string, unknown>) {
     const host = args.host as string
     const tool = await findAvailableTool(['testssl.sh', 'testssl', 'nmap'])
-    if (!tool) throw new Error('Install testssl.sh or nmap to use this command.')
+    if (!tool) throw new ToolNotFoundError('testssl.sh, nmap', 'testssl.sh or nmap')
 
     if (tool === 'testssl.sh' || tool === 'testssl') {
       const result = await runTool({

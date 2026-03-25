@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, checkToolInstalled, parseJsonLines } from '../_utils/tool-runner.js'
 
 export function parseTrufflehogOutput(stdout: string): Record<string, unknown>[] {
@@ -44,7 +45,7 @@ cli({
     const onlyVerified = args.only_verified as boolean
 
     if (!(await checkToolInstalled('trufflehog'))) {
-      throw new Error('trufflehog is not installed. Install: brew install trufflehog / go install github.com/trufflesecurity/trufflehog/v3@latest')
+      throw new ToolNotFoundError('trufflehog', 'brew install trufflehog / go install github.com/trufflesecurity/trufflehog/v3@latest')
     }
 
     const thArgs = ['git', 'file://' + path, '--json', '--no-update']

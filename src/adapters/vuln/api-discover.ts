@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool, parseJsonLines } from '../_utils/tool-runner.js'
 
 cli({
@@ -25,7 +26,7 @@ cli({
     const wordlist = args.wordlist as string | undefined
 
     const tool = await findAvailableTool(['kr', 'kiterunner', 'ffuf'])
-    if (!tool) throw new Error('Install kiterunner or ffuf for API discovery.')
+    if (!tool) throw new ToolNotFoundError('kr, kiterunner, ffuf', 'kiterunner or ffuf')
 
     if (tool === 'kr' || tool === 'kiterunner') {
       const krArgs = ['scan', target, '--json']

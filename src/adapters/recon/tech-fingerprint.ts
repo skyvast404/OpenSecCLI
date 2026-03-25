@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool } from '../_utils/tool-runner.js'
 import { parseHttpxOutput } from './parsers.js'
 import { parseJsonLines } from '../_utils/tool-runner.js'
@@ -24,7 +25,7 @@ cli({
   async func(ctx: ExecContext, args: Record<string, unknown>) {
     const target = args.target as string
     const tool = await findAvailableTool(['httpx', 'whatweb'])
-    if (!tool) throw new Error('Install httpx or whatweb to use this command.')
+    if (!tool) throw new ToolNotFoundError('httpx, whatweb', 'httpx or whatweb')
 
     if (tool === 'httpx') {
       const isFile = target.includes('\n') || target.endsWith('.txt')

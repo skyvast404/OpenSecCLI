@@ -5,6 +5,7 @@
 
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { ToolNotFoundError } from '../../errors.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -138,6 +139,7 @@ export function parseTextLines(input: string): string[] {
 export async function runExternalTool(opts: {
   tools: string[]
   buildArgs: (tool: string) => string[]
+  installHint?: string
   cwd?: string
   timeout?: number
   parseOutput: (stdout: string, tool: string) => Record<string, unknown>[]
@@ -146,9 +148,9 @@ export async function runExternalTool(opts: {
 }): Promise<{ tool: string; results: Record<string, unknown>[] }> {
   const tool = await findAvailableTool(opts.tools)
   if (!tool) {
-    throw new Error(
-      `None of these tools are installed: ${opts.tools.join(', ')}. ` +
-        `Install one of them to use this command.`,
+    throw new ToolNotFoundError(
+      opts.tools.join(', '),
+      opts.installHint ?? opts.tools.join(' or '),
     )
   }
 
@@ -163,4 +165,28 @@ export async function runExternalTool(opts: {
 
   const results = opts.parseOutput(result.stdout, tool)
   return { tool, results }
+}
+
+/**
+ * Get the version string of an installed tool.
+ * Tries --version, -v, -V, version in order.
+ */
+export async function getToolVersion(tool: string): Promise<string | null> {
+  const versionFlags = ['--version', '-v', '-V', 'version']
+  for (const flag of versionFlags) {
+    try {
+      const result = await runTool({
+        tool,
+        args: [flag],
+        timeout: 5,
+        allowNonZero: true,
+      })
+      const output = (result.stdout + result.stderr).trim()
+      const match = output.match(/(\d+\.\d+[\w.-]*)/)
+      if (match) return match[1]
+    } catch {
+      continue
+    }
+  }
+  return null
 }

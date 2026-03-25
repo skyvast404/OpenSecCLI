@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, findAvailableTool } from '../_utils/tool-runner.js'
 
 interface SyftLicense {
@@ -30,7 +31,7 @@ cli({
     const format = args.format as string
 
     const tool = await findAvailableTool(['syft', 'cyclonedx-cli'])
-    if (!tool) throw new Error('Install syft or cyclonedx-cli for SBOM generation.')
+    if (!tool) throw new ToolNotFoundError('syft, cyclonedx-cli', 'syft or cyclonedx-cli')
 
     if (tool === 'syft') {
       const syftArgs = [path, '-o', format === 'json' ? 'json' : format]

@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, checkToolInstalled } from '../_utils/tool-runner.js'
 import { parseNucleiOutput } from './parsers.js'
 
@@ -30,7 +31,7 @@ cli({
     const rateLimit = args.rate_limit as number
 
     if (!(await checkToolInstalled('nuclei'))) {
-      throw new Error('nuclei is not installed. Install: go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest')
+      throw new ToolNotFoundError('nuclei', 'go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest')
     }
 
     const nucleiArgs = ['-jsonl', '-silent', '-rl', String(rateLimit), '-severity', severity]

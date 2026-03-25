@@ -6,6 +6,7 @@
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
+import { ToolNotFoundError } from '../../errors.js'
 import { runTool, checkToolInstalled } from '../_utils/tool-runner.js'
 import { parseNiktoOutput } from './parsers.js'
 
@@ -26,7 +27,7 @@ cli({
     const tuning = args.tuning as string | undefined
 
     if (!(await checkToolInstalled('nikto'))) {
-      throw new Error('nikto is not installed. Install: apt install nikto / brew install nikto')
+      throw new ToolNotFoundError('nikto', 'apt install nikto / brew install nikto')
     }
 
     const niktoArgs = ['-h', target, '-Format', 'txt', '-nointeractive']
