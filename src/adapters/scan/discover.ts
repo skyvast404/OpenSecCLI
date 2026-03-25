@@ -11,8 +11,9 @@ import type { ExecContext } from '../../types.js'
 import type { EntryPoint, GitSignal, ProjectMap } from './types.js'
 import { findEntryPoints } from './entrypoints.js'
 import { extractSignals } from './git-signals.js'
-import { readdir, readFile } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { walkDir } from '../../utils/fs-walk.js'
+import { readFile } from 'node:fs/promises'
+import { extname } from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
@@ -44,11 +45,6 @@ const FRAMEWORK_PATTERNS: ReadonlyArray<{ pattern: RegExp; name: string }> = [
   { pattern: /from\s+['"]vue['"]/i, name: 'vue' },
   { pattern: /from\s+['"]next/i, name: 'nextjs' },
 ]
-
-const SKIP_DIRS = new Set([
-  'node_modules', '.git', '__pycache__', '.venv', 'venv',
-  'dist', 'build', '.next', 'vendor', 'target',
-])
 
 const SOURCE_EXTENSIONS = new Set(Object.keys(LANG_EXT_MAP))
 
@@ -90,31 +86,6 @@ export function buildProjectMap(input: {
     git_security_signals: input.gitSignals,
     source_files: input.sourceFiles,
   }
-}
-
-async function walkSourceFiles(dir: string, maxDepth = 10): Promise<string[]> {
-  if (maxDepth <= 0) return []
-  const files: string[] = []
-
-  try {
-    const entries = await readdir(dir, { withFileTypes: true })
-    for (const entry of entries) {
-      if (entry.name.startsWith('.') && entry.name !== '.') continue
-      if (SKIP_DIRS.has(entry.name)) continue
-
-      const fullPath = join(dir, entry.name)
-      if (entry.isDirectory()) {
-        const sub = await walkSourceFiles(fullPath, maxDepth - 1)
-        files.push(...sub)
-      } else if (SOURCE_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
-        files.push(fullPath)
-      }
-    }
-  } catch {
-    // Skip inaccessible dirs
-  }
-
-  return files
 }
 
 async function getGitCommits(repoPath: string, maxCommits: number) {
@@ -166,7 +137,7 @@ cli({
     const maxCommits = (args.max_commits as number) ?? 80
 
     ctx.log.step(1, 5, 'Scanning source files')
-    const files = await walkSourceFiles(repoPath)
+    const files = await walkDir(repoPath, { extensions: SOURCE_EXTENSIONS })
     const relativeFiles = files.map(f => f.replace(repoPath + '/', ''))
     ctx.log.verbose(`Found ${files.length} source files`)
 

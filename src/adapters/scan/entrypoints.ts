@@ -10,8 +10,9 @@
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
 import type { EntryPoint, EntryPointKind } from './types.js'
-import { readdir, readFile } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { walkDir } from '../../utils/fs-walk.js'
+import { readFile } from 'node:fs/promises'
+import { extname } from 'node:path'
 
 interface RoutePattern {
   regex: RegExp
@@ -193,36 +194,6 @@ const SCAN_EXTENSIONS = new Set([
   '.py', '.js', '.ts', '.tsx', '.jsx', '.java', '.php',
 ])
 
-const SKIP_DIRS = new Set([
-  'node_modules', '.git', '__pycache__', '.venv', 'venv',
-  'dist', 'build', '.next', 'vendor', 'target',
-])
-
-async function walkDir(dir: string, maxDepth = 10): Promise<string[]> {
-  if (maxDepth <= 0) return []
-  const files: string[] = []
-
-  try {
-    const entries = await readdir(dir, { withFileTypes: true })
-    for (const entry of entries) {
-      if (entry.name.startsWith('.') && entry.name !== '.') continue
-      if (SKIP_DIRS.has(entry.name)) continue
-
-      const fullPath = join(dir, entry.name)
-      if (entry.isDirectory()) {
-        const sub = await walkDir(fullPath, maxDepth - 1)
-        files.push(...sub)
-      } else if (SCAN_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
-        files.push(fullPath)
-      }
-    }
-  } catch {
-    // Permission denied or other fs error — skip
-  }
-
-  return files
-}
-
 cli({
   provider: 'scan',
   name: 'entrypoints',
@@ -240,7 +211,7 @@ cli({
 
     ctx.log.info(`Scanning ${targetPath} for entry points...`)
 
-    const files = await walkDir(targetPath)
+    const files = await walkDir(targetPath, { extensions: SCAN_EXTENSIONS })
     ctx.log.verbose(`Found ${files.length} source files`)
 
     const allEntryPoints: EntryPoint[] = []
