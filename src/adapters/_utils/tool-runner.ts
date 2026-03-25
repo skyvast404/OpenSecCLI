@@ -31,8 +31,9 @@ export interface ToolRunOptions {
  * Check if a CLI tool is installed and in PATH.
  */
 export async function checkToolInstalled(tool: string): Promise<boolean> {
+  const cmd = process.platform === 'win32' ? 'where' : 'which'
   try {
-    await execFileAsync('which', [tool])
+    await execFileAsync(cmd, [tool])
     return true
   } catch {
     return false
