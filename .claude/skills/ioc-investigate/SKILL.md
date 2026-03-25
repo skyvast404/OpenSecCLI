@@ -70,7 +70,7 @@ opensec virustotal domain-lookup --domain <domain> --format json
 ```
 
 ```bash
-opensec abuse.ch threatfox-search --query <domain> --format json
+opensec abuse.ch threatfox-search --ioc <domain> --format json
 ```
 
 ### URL
@@ -86,7 +86,7 @@ opensec virustotal domain-lookup --domain <extracted-domain> --format json
 ```
 
 ```bash
-opensec abuse.ch threatfox-search --query <url> --format json
+opensec abuse.ch threatfox-search --ioc <url> --format json
 ```
 
 ## 3. Error Handling

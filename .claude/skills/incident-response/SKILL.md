@@ -67,14 +67,14 @@ opensec shodan host-lookup --ip <ip> --format json
 ```bash
 opensec virustotal hash-lookup --hash <hash> --format json
 opensec abuse.ch malwarebazaar-query --hash <hash> --format json
-opensec abuse.ch threatfox-search --query <hash> --format json
+opensec abuse.ch threatfox-search --ioc <hash> --format json
 ```
 
 ### Domains
 
 ```bash
 opensec virustotal domain-lookup --domain <domain> --format json
-opensec abuse.ch threatfox-search --query <domain> --format json
+opensec abuse.ch threatfox-search --ioc <domain> --format json
 ```
 
 ### URLs
@@ -88,13 +88,13 @@ opensec virustotal domain-lookup --domain <extracted-domain> --format json
 ### CVE IDs
 
 ```bash
-opensec nvd cve-get --cve <cve-id> --format json
+opensec nvd cve-get --cve_id <cve-id> --format json
 ```
 
 ### General IOC (unknown type)
 
 ```bash
-opensec abuse.ch threatfox-search --query <ioc> --format json
+opensec abuse.ch threatfox-search --ioc <ioc> --format json
 ```
 
 **Important:**

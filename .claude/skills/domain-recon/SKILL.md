@@ -89,7 +89,7 @@ Capture: country, city, org, ASN, anycast status.
 **3c. ThreatFox IOC check** — domain and key subdomains:
 
 ```bash
-opensec abuse.ch threatfox-search --query $DOMAIN --format json
+opensec abuse.ch threatfox-search --ioc $DOMAIN --format json
 ```
 
 Capture: any IOC matches, malware family, threat type, confidence.

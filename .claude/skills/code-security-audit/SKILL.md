@@ -111,7 +111,7 @@ This is the critical analysis step. Do NOT skip it.
 For any dependency vulnerabilities found in Step 2, enrich with CVE details:
 
 ```bash
-opensec nvd cve-search --keyword <package-name>
+opensec nvd cve-search --keyword <package-name> --format json
 ```
 
 Run this for the top critical/high dependency findings only — do not flood the NVD API.
@@ -121,7 +121,7 @@ Run this for the top critical/high dependency findings only — do not flood the
 #### 7a: Save machine-readable report
 
 ```bash
-opensec scan report --input <analysis-output-file> --output_dir <OUTPUT_DIR>
+opensec scan report --input <analysis-output-file> --output_dir <OUTPUT_DIR> --format json
 ```
 
 This produces JSON, SARIF, and Markdown files in the output directory.
