@@ -1,0 +1,32 @@
+# src/adapters/greynoise/ip-check.yaml
+provider: greynoise
+name: ip-check
+description: Check IP noise classification on GreyNoise
+strategy: API_KEY
+auth: greynoise
+
+args:
+  ip:
+    type: string
+    required: true
+    help: IP address to check
+
+pipeline:
+  - request:
+      url: "https://api.greynoise.io/v3/community/{{ args.ip }}"
+      headers:
+        key: "{{ auth.api_key }}"
+        Accept: application/json
+
+  - map:
+      template:
+        ip: "{{ item.ip }}"
+        noise: "{{ item.noise }}"
+        riot: "{{ item.riot }}"
+        classification: "{{ item.classification }}"
+        name: "{{ item.name }}"
+        link: "{{ item.link }}"
+        last_seen: "{{ item.last_seen }}"
+        message: "{{ item.message }}"
+
+columns: [ip, classification, noise, riot, name, last_seen]

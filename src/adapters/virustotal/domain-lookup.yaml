@@ -1,0 +1,31 @@
+provider: virustotal
+name: domain-lookup
+description: Look up domain reputation on VirusTotal
+strategy: API_KEY
+auth: virustotal
+
+args:
+  domain:
+    type: string
+    required: true
+    help: Domain name to look up
+
+pipeline:
+  - request:
+      url: "https://www.virustotal.com/api/v3/domains/{{ args.domain }}"
+      headers:
+        x-apikey: "{{ auth.api_key }}"
+        Accept: application/json
+
+  - map:
+      template:
+        domain: "{{ item.data.id }}"
+        registrar: "{{ item.data.attributes.registrar }}"
+        creation_date: "{{ item.data.attributes.creation_date }}"
+        malicious: "{{ item.data.attributes.last_analysis_stats.malicious }}"
+        suspicious: "{{ item.data.attributes.last_analysis_stats.suspicious }}"
+        harmless: "{{ item.data.attributes.last_analysis_stats.harmless }}"
+        reputation: "{{ item.data.attributes.reputation }}"
+        categories: "{{ item.data.attributes.categories | values | join(', ') }}"
+
+columns: [domain, registrar, malicious, suspicious, harmless, reputation, categories]

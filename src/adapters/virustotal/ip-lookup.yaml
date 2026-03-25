@@ -1,0 +1,31 @@
+provider: virustotal
+name: ip-lookup
+description: Look up IP address reputation on VirusTotal
+strategy: API_KEY
+auth: virustotal
+
+args:
+  ip:
+    type: string
+    required: true
+    help: IP address to look up
+
+pipeline:
+  - request:
+      url: "https://www.virustotal.com/api/v3/ip_addresses/{{ args.ip }}"
+      headers:
+        x-apikey: "{{ auth.api_key }}"
+        Accept: application/json
+
+  - map:
+      template:
+        ip: "{{ item.data.id }}"
+        country: "{{ item.data.attributes.country }}"
+        as_owner: "{{ item.data.attributes.as_owner }}"
+        asn: "{{ item.data.attributes.asn }}"
+        malicious: "{{ item.data.attributes.last_analysis_stats.malicious }}"
+        suspicious: "{{ item.data.attributes.last_analysis_stats.suspicious }}"
+        harmless: "{{ item.data.attributes.last_analysis_stats.harmless }}"
+        network: "{{ item.data.attributes.network }}"
+
+columns: [ip, country, as_owner, malicious, suspicious, harmless, network]

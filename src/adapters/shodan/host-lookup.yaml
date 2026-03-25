@@ -1,0 +1,32 @@
+# src/adapters/shodan/host-lookup.yaml
+provider: shodan
+name: host-lookup
+description: Look up host information on Shodan
+strategy: API_KEY
+auth: shodan
+
+args:
+  ip:
+    type: string
+    required: true
+    help: IP address to look up
+
+pipeline:
+  - request:
+      url: "https://api.shodan.io/shodan/host/{{ args.ip }}"
+      params:
+        key: "{{ auth.api_key }}"
+
+  - map:
+      template:
+        ip: "{{ item.ip_str }}"
+        org: "{{ item.org }}"
+        os: "{{ item.os }}"
+        isp: "{{ item.isp }}"
+        country: "{{ item.country_code }}"
+        city: "{{ item.city }}"
+        ports: "{{ item.ports | join(', ') }}"
+        vulns: "{{ item.vulns | join(', ') }}"
+        last_update: "{{ item.last_update }}"
+
+columns: [ip, org, os, country, city, ports, vulns]

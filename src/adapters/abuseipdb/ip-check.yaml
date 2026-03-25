@@ -1,0 +1,41 @@
+provider: abuseipdb
+name: ip-check
+description: Check IP reputation on AbuseIPDB
+strategy: API_KEY
+auth: abuseipdb
+
+args:
+  ip:
+    type: string
+    required: true
+    help: IP address to check
+  days:
+    type: number
+    default: 90
+    help: Max age of reports in days
+
+pipeline:
+  - request:
+      url: https://api.abuseipdb.com/api/v2/check
+      headers:
+        Key: "{{ auth.api_key }}"
+        Accept: application/json
+      params:
+        ipAddress: "{{ args.ip }}"
+        maxAgeInDays: "{{ args.days }}"
+
+  - select:
+      path: data
+
+  - map:
+      template:
+        ip: "{{ item.ipAddress }}"
+        abuse_score: "{{ item.abuseConfidenceScore }}"
+        country: "{{ item.countryCode }}"
+        isp: "{{ item.isp }}"
+        usage_type: "{{ item.usageType }}"
+        domain: "{{ item.domain }}"
+        total_reports: "{{ item.totalReports }}"
+        last_reported: "{{ item.lastReportedAt }}"
+
+columns: [ip, abuse_score, country, isp, total_reports, last_reported]

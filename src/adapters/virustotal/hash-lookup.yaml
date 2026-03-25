@@ -1,0 +1,32 @@
+provider: virustotal
+name: hash-lookup
+description: Look up file hash on VirusTotal
+strategy: API_KEY
+auth: virustotal
+
+args:
+  hash:
+    type: string
+    required: true
+    help: File hash (MD5, SHA1, or SHA256)
+
+pipeline:
+  - request:
+      url: "https://www.virustotal.com/api/v3/files/{{ args.hash }}"
+      headers:
+        x-apikey: "{{ auth.api_key }}"
+        Accept: application/json
+
+  - map:
+      template:
+        sha256: "{{ item.data.attributes.sha256 }}"
+        file_type: "{{ item.data.attributes.type_description }}"
+        size: "{{ item.data.attributes.size }}"
+        malicious: "{{ item.data.attributes.last_analysis_stats.malicious }}"
+        suspicious: "{{ item.data.attributes.last_analysis_stats.suspicious }}"
+        undetected: "{{ item.data.attributes.last_analysis_stats.undetected }}"
+        name: "{{ item.data.attributes.meaningful_name }}"
+        tags: "{{ item.data.attributes.tags | join(', ') }}"
+        first_seen: "{{ item.data.attributes.first_submission_date }}"
+
+columns: [sha256, file_type, name, malicious, suspicious, undetected, tags]
