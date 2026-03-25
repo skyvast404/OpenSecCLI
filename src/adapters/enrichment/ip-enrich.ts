@@ -7,6 +7,7 @@
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
 import { loadAuth } from '../../auth/index.js'
+import { walkPath } from '../../utils/walk-path.js'
 
 interface SourceConfig {
   name: string
@@ -170,16 +171,3 @@ function inferVerdict(source: string, data: unknown, _fields: Record<string, str
   }
 }
 
-function walkPath(value: unknown, segments: string[]): unknown {
-  for (const segment of segments) {
-    if (value === null || value === undefined) return undefined
-    if (Array.isArray(value) && /^\d+$/.test(segment)) {
-      value = value[parseInt(segment, 10)]
-    } else if (typeof value === 'object') {
-      value = (value as Record<string, unknown>)[segment]
-    } else {
-      return undefined
-    }
-  }
-  return value
-}
