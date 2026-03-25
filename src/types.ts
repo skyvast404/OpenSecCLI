@@ -13,6 +13,12 @@ export interface Arg {
   help?: string
 }
 
+/**
+ * Standard adapter return type.
+ * Adapters return an array of row objects for table/json/csv rendering.
+ */
+export type AdapterResult = Record<string, unknown>[] | Record<string, unknown>
+
 export interface PipelineStep {
   [stepName: string]: Record<string, unknown>
 }
@@ -24,7 +30,7 @@ export interface CliCommand {
   strategy: Strategy
   auth?: string
   domain?: string
-  func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<unknown>
+  func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<AdapterResult>
   pipeline?: PipelineStep[]
   args: Record<string, Arg>
   columns: string[]
@@ -39,7 +45,7 @@ export interface CliOptions {
   strategy?: Strategy
   auth?: string
   domain?: string
-  func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<unknown>
+  func?: (ctx: ExecContext, args: Record<string, unknown>) => Promise<AdapterResult>
   pipeline?: PipelineStep[]
   args?: Record<string, Arg>
   columns?: string[]

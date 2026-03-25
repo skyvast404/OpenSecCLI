@@ -7,7 +7,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { EntryPoint, GitSignal, ProjectMap } from './types.js'
 import { findEntryPoints } from './entrypoints.js'
 import { extractSignals } from './git-signals.js'
@@ -133,7 +133,7 @@ cli({
   columns: ['field', 'value'],
   timeout: 120,
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const repoPath = args.path as string
     const maxCommits = (args.max_commits as number) ?? 80
 

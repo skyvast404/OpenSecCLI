@@ -5,7 +5,7 @@
  */
 
 import { cli, Strategy, getRegistry } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { RawFinding, Severity } from './types.js'
 import { buildJsonReport, buildSarifReport, buildMarkdownReport } from './report.js'
 import { mkdir, writeFile } from 'node:fs/promises'
@@ -45,7 +45,7 @@ cli({
   columns: ['stage', 'status', 'detail'],
   timeout: 600,
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const repoPath = args.path as string
     const outputDir = (args.output_dir as string) ?? './scan-results'
     const startTime = Date.now()

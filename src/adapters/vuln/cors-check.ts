@@ -15,6 +15,7 @@ interface CorsResult {
   acac: string
   vulnerable: boolean
   severity: string
+  [key: string]: unknown
 }
 
 const CORS_TESTS: ReadonlyArray<{

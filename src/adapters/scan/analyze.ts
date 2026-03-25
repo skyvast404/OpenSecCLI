@@ -5,7 +5,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { RawFinding, Severity, PhaseMetric } from './types.js'
 import { checkToolInstalled, runTool } from '../_utils/tool-runner.js'
 
@@ -148,7 +148,7 @@ cli({
   ],
   timeout: 300,
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const repoPath = args.path as string
     const toolsArg = (args.tools as string) ?? 'auto'
 

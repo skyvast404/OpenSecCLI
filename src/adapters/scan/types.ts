@@ -13,6 +13,7 @@ export interface EntryPoint {
   method?: string
   pattern?: string
   framework?: string
+  [key: string]: unknown
 }
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info'

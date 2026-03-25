@@ -39,6 +39,7 @@ export interface HeaderAuditResult {
   value: string
   recommendation: string
   severity: string
+  [key: string]: unknown
 }
 
 const SECURITY_HEADERS: ReadonlyArray<{

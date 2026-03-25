@@ -5,7 +5,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import { loadAuth } from '../../auth/index.js'
 import { walkPath } from '../../utils/walk-path.js'
 
@@ -68,7 +68,7 @@ cli({
   },
   columns: ['source', 'status', 'verdict', 'detail'],
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const ip = args.ip as string
     const timeout = 15_000
 

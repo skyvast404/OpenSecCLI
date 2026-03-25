@@ -4,7 +4,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { GitSignal } from './types.js'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -99,7 +99,7 @@ cli({
   },
   columns: ['commit', 'message', 'files', 'keywords'],
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const repoPath = args.path as string
     const maxCommits = (args.max_commits as number) ?? 80
     const maxSignals = (args.max_signals as number) ?? 20

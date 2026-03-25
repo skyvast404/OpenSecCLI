@@ -8,7 +8,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { EntryPoint, EntryPointKind } from './types.js'
 import { walkDir } from '../../utils/fs-walk.js'
 import { readFile } from 'node:fs/promises'
@@ -206,7 +206,7 @@ cli({
   },
   columns: ['file', 'line', 'kind', 'method', 'pattern', 'framework'],
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const targetPath = args.path as string
     const langFilter = args.language as string | undefined
 

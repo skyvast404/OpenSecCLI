@@ -4,7 +4,7 @@
  */
 
 import { cli, Strategy } from '../../registry.js'
-import type { ExecContext } from '../../types.js'
+import type { AdapterResult, ExecContext } from '../../types.js'
 import type { RawFinding, Severity, ScanReport } from './types.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -182,7 +182,7 @@ cli({
   },
   columns: ['format', 'file', 'status'],
 
-  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<unknown> {
+  async func(ctx: ExecContext, args: Record<string, unknown>): Promise<AdapterResult> {
     const inputPath = args.input as string
     const outputDir = (args.output_dir as string) ?? './scan-results'
     const formats = ((args.formats as string) ?? 'json,sarif,markdown').split(',').map(f => f.trim())

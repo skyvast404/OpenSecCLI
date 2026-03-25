@@ -15,6 +15,7 @@ interface CiAuditFinding {
   severity: string
   line: number
   detail: string
+  [key: string]: unknown
 }
 
 const DANGEROUS_CONTEXTS = [
