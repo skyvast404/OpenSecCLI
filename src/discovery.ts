@@ -18,7 +18,7 @@ export async function discoverAdapters(): Promise<void> {
   // Fast path: pre-compiled manifest
   const manifestPath = join(__dirname, 'cli-manifest.json')
   if (existsSync(manifestPath)) {
-    loadFromManifest(manifestPath)
+    await loadFromManifest(manifestPath)
     return
   }
 
@@ -26,7 +26,7 @@ export async function discoverAdapters(): Promise<void> {
   await discoverFromFilesystem(join(__dirname, 'adapters'))
 }
 
-function loadFromManifest(manifestPath: string): void {
+async function loadFromManifest(manifestPath: string): Promise<void> {
   try {
     const content = readFileSync(manifestPath, 'utf-8')
     const entries: ManifestEntry[] = JSON.parse(content)
@@ -45,16 +45,15 @@ function loadFromManifest(manifestPath: string): void {
         source: entry.source,
       }
 
-      // TypeScript adapters: lazy-load the module on first execution
+      // TypeScript adapters: eager-load so args and func are registered
       if (entry.source === 'typescript' && entry.modulePath) {
-        const modulePath = entry.modulePath
-        command.func = async (ctx, args) => {
-          const mod = await import(join(__dirname, modulePath))
-          const loadedCmd = getRegistry().get(`${entry.provider}/${entry.name}`)
-          if (loadedCmd?.func && loadedCmd.func !== command.func) {
-            return loadedCmd.func(ctx, args)
-          }
-          throw new Error(`Module ${modulePath} did not register a func`)
+        try {
+          await import(join(__dirname, entry.modulePath))
+          // After import, cli() should have registered the real command
+          const loaded = getRegistry().get(`${entry.provider}/${entry.name}`)
+          if (loaded) continue  // Already registered with full args
+        } catch (err) {
+          log.debug(`Failed to load TS module ${entry.modulePath}: ${(err as Error).message}`)
         }
       }
 

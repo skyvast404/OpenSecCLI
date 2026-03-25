@@ -46,20 +46,24 @@ function scanYaml(providerDir: string, provider: string): ManifestEntry[] {
 function scanTs(providerDir: string, provider: string): ManifestEntry[] {
   const entries: ManifestEntry[] = []
   const files = readdirSync(providerDir)
-    .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts') && !f.endsWith('.d.ts'))
+    .filter(f => (f.endsWith('.ts') || f.endsWith('.js')) && !f.endsWith('.test.ts') && !f.endsWith('.d.ts') && !f.endsWith('.js.map'))
 
   for (const file of files) {
     try {
       const content = readFileSync(join(providerDir, file), 'utf-8')
 
-      // Extract metadata from cli() call via regex
-      const nameMatch = content.match(/name:\s*['"](.+?)['"]/)
-      const descMatch = content.match(/description:\s*['"](.+?)['"]/)
-      const strategyMatch = content.match(/strategy:\s*Strategy\.(\w+)/)
+      // Extract metadata from cli() call — grab the first ~500 chars after cli({
+      const cliStart = content.search(/cli\s*\(\s*\{/)
+      if (cliStart === -1) continue
+      const cliSection = content.slice(cliStart, cliStart + 500)
+      const nameMatch = cliSection.match(/name:\s*['"](.+?)['"]/)
+      const descMatch = cliSection.match(/description:\s*['"](.+?)['"]/)
+      const strategyMatch = cliSection.match(/strategy:\s*Strategy\.(\w+)/)
 
       if (!nameMatch) continue
 
-      const modulePath = relative(__dirname, join(providerDir, file.replace('.ts', '.js')))
+      const jsFile = file.endsWith('.js') ? file : file.replace('.ts', '.js')
+      const modulePath = relative(__dirname, join(providerDir, jsFile))
 
       entries.push({
         provider,
