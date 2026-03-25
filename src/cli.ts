@@ -11,6 +11,8 @@ import { listAuth, saveAuth, removeAuth, loadAuth } from './auth/index.js'
 import { render } from './output.js'
 import { CliError, ERROR_ICONS } from './errors.js'
 import { EXIT_CODES } from './constants.js'
+import { createAdapter } from './commands/create.js'
+import { SECURITY_DOMAINS } from './constants/domains.js'
 import type { CliCommand, Arg } from './types.js'
 
 export function createCli(version: string): Command {
@@ -130,6 +132,39 @@ export function createCli(version: string): Command {
       } else {
         process.stderr.write(chalk.red(` ✗ ${result.message}\n`))
         process.exit(EXIT_CODES.AUTH_FAILED)
+      }
+    })
+
+  // Built-in: create
+  const createCmd = program
+    .command('create')
+    .description('Scaffold new adapters and plugins')
+
+  createCmd
+    .command('adapter <name>')
+    .description('Create a new adapter scaffold (e.g., opensec create adapter urlscan/submit)')
+    .option('-t, --type <type>', 'adapter type: yaml or typescript', 'yaml')
+    .option('-p, --provider <name>', 'provider name (default: inferred from name)')
+    .option('-s, --strategy <strategy>', 'auth strategy: free or api_key', 'free')
+    .option('-d, --domain <domain>', `security domain: ${Object.keys(SECURITY_DOMAINS).join(', ')}`, 'recon')
+    .option('-o, --output <dir>', 'output directory', '.')
+    .action((name: string, opts: Record<string, string>) => {
+      try {
+        const filePath = createAdapter(name, {
+          type: opts.type as 'yaml' | 'typescript',
+          provider: opts.provider,
+          strategy: opts.strategy as 'free' | 'api_key',
+          domain: opts.domain,
+          output: opts.output,
+        })
+        console.log(`Created adapter: ${filePath}`)
+        console.log(`\nNext steps:`)
+        console.log(`  1. Edit the file and fill in TODO sections`)
+        console.log(`  2. Move to ~/.openseccli/plugins/<name>/adapters/ for auto-loading`)
+        console.log(`  3. Or submit a PR to add it to the built-in adapters`)
+      } catch (err) {
+        console.error(`Error: ${(err as Error).message}`)
+        process.exit(1)
       }
     })
 
