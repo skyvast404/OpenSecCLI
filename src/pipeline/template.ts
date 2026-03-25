@@ -33,7 +33,8 @@ export function evaluateExpression(expr: string, ctx: TemplateContext): unknown 
   }
 
   // Handle filter chains: item.tags | join(', ')
-  const parts = expr.split('|').map(p => p.trim())
+  // Split on single | only (not ||)
+  const parts = expr.split(/(?<!\|)\|(?!\|)/).map(p => p.trim())
   let value = resolveValue(parts[0], ctx)
 
   for (let i = 1; i < parts.length; i++) {
