@@ -196,6 +196,16 @@ export function registerAdapterCommands(program: Command): void {
             process.env['OPENSECCLI_TIMEOUT'] = globalOpts.timeout
           }
 
+          // Stdin pipe: if not TTY and first required arg missing, read lines from stdin
+          if (!process.stdin.isTTY && requiredArgNames.length > 0 && !(requiredArgNames[0] in opts)) {
+            const lines = await readStdinLines()
+            for (const line of lines) {
+              const lineOpts = { ...opts, [requiredArgNames[0]]: line }
+              await executeCommand(`${provider}/${cmd.name}`, lineOpts, { format })
+            }
+            return
+          }
+
           await executeCommand(`${provider}/${cmd.name}`, opts, { format })
         } catch (error) {
           handleError(error)
@@ -250,6 +260,18 @@ function resolveArgs(
   }
 
   return result
+}
+
+async function readStdinLines(): Promise<string[]> {
+  const chunks: Buffer[] = []
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
+    .toString('utf-8')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
 }
 
 function handleError(error: unknown): never {
