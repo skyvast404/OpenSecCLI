@@ -10,6 +10,8 @@ import YAML from 'js-yaml'
 import { getRegistry, registerCommand, parseStrategy } from './registry.js'
 import { Strategy } from './types.js'
 import { log } from './logger.js'
+import { discoverLocalPlugins } from './plugins/local-discovery.js'
+import { PROVIDER_DOMAIN_MAP } from './constants/domains.js'
 import type { CliCommand, ManifestEntry, PipelineStep, Arg } from './types.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -19,11 +21,13 @@ export async function discoverAdapters(): Promise<void> {
   const manifestPath = join(__dirname, 'cli-manifest.json')
   if (existsSync(manifestPath)) {
     await loadFromManifest(manifestPath)
-    return
+  } else {
+    // Fallback: filesystem scan (development mode)
+    await discoverFromFilesystem(join(__dirname, 'adapters'))
   }
 
-  // Fallback: filesystem scan (development mode)
-  await discoverFromFilesystem(join(__dirname, 'adapters'))
+  // Load local plugins from ~/.openseccli/plugins/
+  await discoverLocalPlugins()
 }
 
 async function loadFromManifest(manifestPath: string): Promise<void> {
@@ -43,6 +47,7 @@ async function loadFromManifest(manifestPath: string): Promise<void> {
         timeout: entry.timeout,
         pipeline: entry.pipeline,
         source: entry.source,
+        domain: entry.domain ?? PROVIDER_DOMAIN_MAP[entry.provider],
       }
 
       // TypeScript adapters: eager-load so args and func are registered
@@ -104,8 +109,9 @@ function registerYamlAdapter(filePath: string, providerFallback: string): void {
 
     if (!def || typeof def !== 'object') return
 
+    const provider = (def.provider as string) ?? providerFallback
     const command: CliCommand = {
-      provider: (def.provider as string) ?? providerFallback,
+      provider,
       name: def.name as string,
       description: (def.description as string) ?? '',
       strategy: parseStrategy((def.strategy as string) ?? 'FREE'),
@@ -115,6 +121,7 @@ function registerYamlAdapter(filePath: string, providerFallback: string): void {
       columns: (def.columns as string[]) ?? [],
       timeout: def.timeout as number | undefined,
       source: 'yaml',
+      domain: (def.domain as string) ?? PROVIDER_DOMAIN_MAP[provider],
     }
 
     registerCommand(command)

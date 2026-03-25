@@ -4,6 +4,7 @@
  */
 
 import { Strategy } from './types.js'
+import { PROVIDER_DOMAIN_MAP } from './constants/domains.js'
 import type { CliCommand, CliOptions, Arg } from './types.js'
 
 const REGISTRY_KEY = '__openseccli_registry__'
@@ -22,7 +23,7 @@ export function cli(options: CliOptions): CliCommand {
     description: options.description ?? '',
     strategy: options.strategy ?? Strategy.FREE,
     auth: options.auth,
-    domain: options.domain,
+    domain: options.domain ?? PROVIDER_DOMAIN_MAP[options.provider],
     func: options.func,
     pipeline: options.pipeline,
     args: options.args ?? {},
