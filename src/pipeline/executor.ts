@@ -8,6 +8,7 @@ import { log } from '../logger.js'
 import type { PipelineStep, AuthCredentials } from '../types.js'
 import { executeRequest } from './steps/request.js'
 import { executeSelect, executeMap, executeFilter, executeSort, executeLimit } from './steps/transform.js'
+import { executeEnrich } from './steps/enrich.js'
 
 export interface PipelineContext {
   args: Record<string, unknown>
@@ -90,6 +91,9 @@ async function executeStep(
 
     case 'limit':
       return executeLimit(params as any, data, ctx)
+
+    case 'enrich':
+      return executeEnrich(params as any, data, ctx)
 
     default:
       throw new PipelineError(name, `Unknown pipeline step: ${name}`)
