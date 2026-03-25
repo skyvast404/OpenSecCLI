@@ -1,16 +1,13 @@
 /**
  * Multi-tool static analysis runner.
- * Coordinates semgrep, gitleaks, npm audit, pip-audit in parallel.
+ * Coordinates semgrep and gitleaks in parallel.
  * Normalizes and deduplicates findings into a unified RawFinding format.
  */
 
 import { cli, Strategy } from '../../registry.js'
 import type { ExecContext } from '../../types.js'
 import type { RawFinding, Severity, PhaseMetric } from './types.js'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-
-const execFileAsync = promisify(execFile)
+import { checkToolInstalled, runTool } from '../_utils/tool-runner.js'
 
 // --- Severity Mapping ---
 
@@ -54,43 +51,6 @@ export function parseGitleaksOutput(output: Array<Record<string, unknown>>): Raw
   }))
 }
 
-export function parseNpmAuditOutput(output: Record<string, unknown>): RawFinding[] {
-  const vulnerabilities =
-    (output.vulnerabilities as Record<string, Record<string, unknown>>) ?? {}
-  return Object.values(vulnerabilities).map((v) => ({
-    rule_id: `npm-${v.name as string}`,
-    severity: normalizeNpmSeverity(v.severity as string),
-    message: `${v.name}: ${v.title ?? v.via ?? 'vulnerable dependency'}`,
-    file_path: 'package.json',
-    start_line: 0,
-    cwe: '',
-    tools_used: ['npm-audit'],
-  }))
-}
-
-export function parsePipAuditOutput(output: Array<Record<string, unknown>>): RawFinding[] {
-  return output.map((v) => ({
-    rule_id: `pip-${v.name as string}-${v.id ?? ''}`,
-    severity: 'medium' as Severity,
-    message: `${v.name} ${v.version}: ${v.description ?? 'known vulnerability'}`,
-    file_path: 'requirements.txt',
-    start_line: 0,
-    cwe: '',
-    tools_used: ['pip-audit'],
-  }))
-}
-
-function normalizeNpmSeverity(s: string): Severity {
-  const map: Record<string, Severity> = {
-    critical: 'critical',
-    high: 'high',
-    moderate: 'medium',
-    low: 'low',
-    info: 'info',
-  }
-  return map[s] ?? 'medium'
-}
-
 // --- Normalize & Dedup ---
 
 export function normalizeFindings(findings: RawFinding[]): RawFinding[] {
@@ -124,201 +84,38 @@ export function deduplicateFindings(findings: RawFinding[]): RawFinding[] {
 
 // --- Tool Runners ---
 
-async function checkTool(name: string): Promise<boolean> {
-  try {
-    await execFileAsync('which', [name])
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function runSemgrep(
-  repoPath: string,
-  ctx: ExecContext,
-): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
+async function runSemgrep(repoPath: string, ctx: ExecContext): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
   const start = Date.now()
   try {
-    const { stdout } = await execFileAsync(
-      'semgrep',
-      ['scan', '--json', '--config', 'auto', repoPath],
-      { maxBuffer: 50 * 1024 * 1024, timeout: 120_000 },
-    )
-    const output = JSON.parse(stdout)
+    const result = await runTool({
+      tool: 'semgrep',
+      args: ['scan', '--json', '--config', 'auto', repoPath],
+      timeout: 120,
+    })
+    const output = JSON.parse(result.stdout)
     const findings = parseSemgrepOutput(output)
-    return {
-      findings,
-      metric: {
-        adapter: 'semgrep',
-        latency_ms: Date.now() - start,
-        findings_count: findings.length,
-        status: 'completed',
-      },
-    }
+    return { findings, metric: { adapter: 'semgrep', latency_ms: Date.now() - start, findings_count: findings.length, status: 'completed' } }
   } catch (error) {
     ctx.log.warn(`Semgrep failed: ${(error as Error).message}`)
-    return {
-      findings: [],
-      metric: {
-        adapter: 'semgrep',
-        latency_ms: Date.now() - start,
-        findings_count: 0,
-        status: 'failed',
-        error: (error as Error).message,
-      },
-    }
+    return { findings: [], metric: { adapter: 'semgrep', latency_ms: Date.now() - start, findings_count: 0, status: 'failed', error: (error as Error).message } }
   }
 }
 
-async function runGitleaks(
-  repoPath: string,
-  ctx: ExecContext,
-): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
+async function runGitleaks(repoPath: string, ctx: ExecContext): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
   const start = Date.now()
   try {
-    const { stdout } = await execFileAsync(
-      'gitleaks',
-      [
-        'detect',
-        '--source',
-        repoPath,
-        '--report-format',
-        'json',
-        '--report-path',
-        '/dev/stdout',
-        '--no-banner',
-      ],
-      { maxBuffer: 10 * 1024 * 1024, timeout: 60_000 },
-    )
-    const output = JSON.parse(stdout || '[]')
-    const findings = parseGitleaksOutput(output)
-    return {
-      findings,
-      metric: {
-        adapter: 'gitleaks',
-        latency_ms: Date.now() - start,
-        findings_count: findings.length,
-        status: 'completed',
-      },
-    }
-  } catch (error) {
-    const msg = (error as Error).message
-    // gitleaks exits with 1 when leaks are found
-    if (msg.includes('exit code 1')) {
-      return {
-        findings: [],
-        metric: {
-          adapter: 'gitleaks',
-          latency_ms: Date.now() - start,
-          findings_count: 0,
-          status: 'completed',
-        },
-      }
-    }
-    ctx.log.warn(`Gitleaks failed: ${msg}`)
-    return {
-      findings: [],
-      metric: {
-        adapter: 'gitleaks',
-        latency_ms: Date.now() - start,
-        findings_count: 0,
-        status: 'failed',
-        error: msg,
-      },
-    }
-  }
-}
-
-async function runNpmAudit(
-  repoPath: string,
-  ctx: ExecContext,
-): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
-  const start = Date.now()
-  try {
-    const { stdout } = await execFileAsync('npm', ['audit', '--json'], {
-      cwd: repoPath,
-      maxBuffer: 10 * 1024 * 1024,
-      timeout: 60_000,
+    const result = await runTool({
+      tool: 'gitleaks',
+      args: ['detect', '--source', repoPath, '--report-format', 'json', '--report-path', '/dev/stdout', '--no-banner'],
+      timeout: 60,
+      allowNonZero: true,
     })
-    const output = JSON.parse(stdout)
-    const findings = parseNpmAuditOutput(output)
-    return {
-      findings,
-      metric: {
-        adapter: 'npm-audit',
-        latency_ms: Date.now() - start,
-        findings_count: findings.length,
-        status: 'completed',
-      },
-    }
+    const output = JSON.parse(result.stdout || '[]')
+    const findings = parseGitleaksOutput(output)
+    return { findings, metric: { adapter: 'gitleaks', latency_ms: Date.now() - start, findings_count: findings.length, status: 'completed' } }
   } catch (error) {
-    // npm audit exits non-zero when vulns found — try to parse stdout from error
-    const errWithOutput = error as { stdout?: string; message: string }
-    if (errWithOutput.stdout) {
-      try {
-        const output = JSON.parse(errWithOutput.stdout)
-        const findings = parseNpmAuditOutput(output)
-        return {
-          findings,
-          metric: {
-            adapter: 'npm-audit',
-            latency_ms: Date.now() - start,
-            findings_count: findings.length,
-            status: 'completed',
-          },
-        }
-      } catch {
-        /* fall through */
-      }
-    }
-    ctx.log.warn(`npm audit failed: ${(error as Error).message}`)
-    return {
-      findings: [],
-      metric: {
-        adapter: 'npm-audit',
-        latency_ms: Date.now() - start,
-        findings_count: 0,
-        status: 'failed',
-        error: (error as Error).message,
-      },
-    }
-  }
-}
-
-async function runPipAudit(
-  repoPath: string,
-  ctx: ExecContext,
-): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
-  const start = Date.now()
-  try {
-    const { stdout } = await execFileAsync(
-      'pip-audit',
-      ['--format', 'json', '-r', `${repoPath}/requirements.txt`],
-      { maxBuffer: 10 * 1024 * 1024, timeout: 60_000 },
-    )
-    const output = JSON.parse(stdout)
-    const findings = parsePipAuditOutput(output)
-    return {
-      findings,
-      metric: {
-        adapter: 'pip-audit',
-        latency_ms: Date.now() - start,
-        findings_count: findings.length,
-        status: 'completed',
-      },
-    }
-  } catch (error) {
-    ctx.log.warn(`pip-audit failed: ${(error as Error).message}`)
-    return {
-      findings: [],
-      metric: {
-        adapter: 'pip-audit',
-        latency_ms: Date.now() - start,
-        findings_count: 0,
-        status: 'failed',
-        error: (error as Error).message,
-      },
-    }
+    ctx.log.warn(`Gitleaks failed: ${(error as Error).message}`)
+    return { findings: [], metric: { adapter: 'gitleaks', latency_ms: Date.now() - start, findings_count: 0, status: 'failed', error: (error as Error).message } }
   }
 }
 
@@ -328,7 +125,7 @@ cli({
   provider: 'scan',
   name: 'analyze',
   description:
-    'Run static security analysis (semgrep, gitleaks, npm/pip audit) on a codebase',
+    'Run static security analysis (semgrep, gitleaks) on a codebase',
   strategy: Strategy.FREE,
   args: {
     path: { type: 'string', required: true, help: 'Path to project root' },
@@ -336,7 +133,7 @@ cli({
       type: 'string',
       required: false,
       default: 'auto',
-      help: 'Comma-separated tools: semgrep,gitleaks,npm-audit,pip-audit (default: auto-detect)',
+      help: 'Comma-separated tools: semgrep,gitleaks (default: auto-detect)',
     },
   },
   columns: [
@@ -356,11 +153,11 @@ cli({
 
     // Detect available tools
     const available: Record<string, boolean> = {}
-    const toolNames = ['semgrep', 'gitleaks', 'npm', 'pip-audit']
+    const toolNames = ['semgrep', 'gitleaks']
 
     await Promise.all(
       toolNames.map(async (t) => {
-        available[t] = await checkTool(t)
+        available[t] = await checkToolInstalled(t)
       }),
     )
 
@@ -380,16 +177,10 @@ cli({
     if (requestedTools.includes('gitleaks') && available.gitleaks) {
       runners.push(runGitleaks(repoPath, ctx))
     }
-    if (requestedTools.includes('npm-audit') && available.npm) {
-      runners.push(runNpmAudit(repoPath, ctx))
-    }
-    if (requestedTools.includes('pip-audit') && available['pip-audit']) {
-      runners.push(runPipAudit(repoPath, ctx))
-    }
 
     if (runners.length === 0) {
       ctx.log.warn(
-        'No analysis tools available. Install semgrep, gitleaks, or use npm/pip-audit.',
+        'No analysis tools available. Install semgrep or gitleaks.',
       )
       return []
     }

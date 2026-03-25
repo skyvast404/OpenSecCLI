@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   parseSemgrepOutput,
   parseGitleaksOutput,
-  parseNpmAuditOutput,
-  parsePipAuditOutput,
   normalizeFindings,
   deduplicateFindings,
 } from '../../src/adapters/scan/analyze.js'
@@ -53,60 +51,6 @@ describe('parseGitleaksOutput', () => {
       rule_id: 'generic-api-key',
       cwe: 'CWE-798',
       tools_used: ['gitleaks'],
-    })
-  })
-})
-
-describe('parseNpmAuditOutput', () => {
-  it('parses npm audit JSON results', () => {
-    const output = {
-      vulnerabilities: {
-        lodash: {
-          name: 'lodash',
-          severity: 'high',
-          title: 'Prototype Pollution',
-          via: [],
-        },
-      },
-    }
-    const findings = parseNpmAuditOutput(output)
-    expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({
-      rule_id: 'npm-lodash',
-      severity: 'high',
-      file_path: 'package.json',
-      tools_used: ['npm-audit'],
-    })
-  })
-
-  it('maps moderate to medium severity', () => {
-    const output = {
-      vulnerabilities: {
-        foo: { name: 'foo', severity: 'moderate', title: 'Issue' },
-      },
-    }
-    const findings = parseNpmAuditOutput(output)
-    expect(findings[0].severity).toBe('medium')
-  })
-})
-
-describe('parsePipAuditOutput', () => {
-  it('parses pip-audit JSON results', () => {
-    const output = [
-      {
-        name: 'flask',
-        version: '1.0',
-        id: 'PYSEC-2021-123',
-        description: 'Vulnerable to XSS',
-      },
-    ]
-    const findings = parsePipAuditOutput(output)
-    expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({
-      rule_id: 'pip-flask-PYSEC-2021-123',
-      severity: 'medium',
-      file_path: 'requirements.txt',
-      tools_used: ['pip-audit'],
     })
   })
 })
