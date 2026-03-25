@@ -3,7 +3,7 @@
  * Replaces OpenCLI's browser session management — file-based auth storage.
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import { CONFIG_DIR_NAME } from '../constants.js'
@@ -48,7 +48,6 @@ export function removeAuth(provider: string): boolean {
   const path = getAuthPath(provider)
   if (!existsSync(path)) return false
 
-  const { unlinkSync } = require('fs')
   unlinkSync(path)
   return true
 }
@@ -57,7 +56,6 @@ export function listAuth(): string[] {
   const dir = getAuthDir()
   if (!existsSync(dir)) return []
 
-  const { readdirSync } = require('fs')
   return (readdirSync(dir) as string[])
     .filter(f => f.endsWith('.json'))
     .map(f => f.replace('.json', ''))

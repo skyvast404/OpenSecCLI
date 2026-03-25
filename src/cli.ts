@@ -148,13 +148,18 @@ export function registerAdapterCommands(program: Command): void {
         .command(cmd.name)
         .description(cmd.description)
 
-      // Register arguments
+      // Register all args as options (--flag style) for consistency.
+      // Required args are also accepted as positional for convenience.
+      const requiredArgNames: string[] = []
       for (const [argName, argDef] of Object.entries(cmd.args)) {
+        registerOption(sub, argName, argDef)
         if (argDef.required) {
-          sub.argument(`<${argName}>`, argDef.help ?? '')
-        } else {
-          registerOption(sub, argName, argDef)
+          requiredArgNames.push(argName)
         }
+      }
+      // Allow first required arg as optional positional too
+      if (requiredArgNames.length > 0) {
+        sub.argument(`[${requiredArgNames[0]}]`, `(positional) ${cmd.args[requiredArgNames[0]].help ?? ''}`)
       }
 
       // Action
@@ -201,21 +206,23 @@ function resolveArgs(
   actionArgs: unknown[],
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {}
-  const requiredArgs = Object.entries(cmd.args).filter(([, d]) => d.required)
   const opts = sub.opts()
+  const requiredArgNames = Object.entries(cmd.args)
+    .filter(([, d]) => d.required)
+    .map(([name]) => name)
 
-  // Positional required args
-  for (let i = 0; i < requiredArgs.length; i++) {
-    const [name] = requiredArgs[i]
-    if (i < actionArgs.length - 1) {  // last arg is Command options
-      result[name] = actionArgs[i]
-    }
-  }
-
-  // Named optional args from options
+  // Named args from options (--flag style)
   for (const [name] of Object.entries(cmd.args)) {
     if (name in opts) {
       result[name] = opts[name]
+    }
+  }
+
+  // Positional arg: first non-object, non-Command arg maps to first required arg
+  if (requiredArgNames.length > 0) {
+    const positional = actionArgs.find(a => typeof a === 'string')
+    if (positional && !(requiredArgNames[0] in result)) {
+      result[requiredArgNames[0]] = positional
     }
   }
 
