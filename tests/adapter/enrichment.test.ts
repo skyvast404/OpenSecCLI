@@ -9,7 +9,7 @@ describe('enrichment/ip-enrich', () => {
       json: () => Promise.resolve({}),
     }))
 
-    await import('../../src/adapters/_enrichment/ip-enrich.js')
+    await import('../../src/adapters/enrichment/ip-enrich.js')
 
     const { getRegistry } = await import('../../src/registry.js')
     const cmd = getRegistry().get('enrichment/ip-enrich')
