@@ -33,28 +33,34 @@ export function parseHttpxOutput(stdout: string): Record<string, unknown>[] {
 
 export function parseNmapOutput(xml: string): Record<string, unknown>[] {
   const results: Record<string, unknown>[] = []
-  // Simple regex-based XML parser for nmap output
-  const hostPattern = /<host[\s\S]*?<\/host>/g
-  const addrPattern = /<address addr="([^"]+)"/
-  const portPattern = /<port protocol="([^"]+)" portid="(\d+)">\s*<state state="([^"]+)"\/>\s*(?:<service name="([^"]*)"(?:\s+product="([^"]*)")?(?:\s+version="([^"]*)")?)?/g
 
-  let hostMatch
-  while ((hostMatch = hostPattern.exec(xml)) !== null) {
-    const hostXml = hostMatch[0]
-    const addrMatch = addrPattern.exec(hostXml)
-    const ip = addrMatch?.[1] ?? 'unknown'
+  // Extract each <host>...</host> block
+  const hostBlocks = xml.match(/<host[\s\S]*?<\/host>/g) ?? []
 
-    let portMatch
-    const portRegex = new RegExp(portPattern.source, 'g')
-    while ((portMatch = portRegex.exec(hostXml)) !== null) {
+  for (const hostXml of hostBlocks) {
+    // Extract IP address
+    const ipMatch = hostXml.match(/<address\s+addr="([^"]+)"/)
+    const ip = ipMatch?.[1] ?? 'unknown'
+
+    // Extract each <port> block (handle both <port>...</port> and self-closing)
+    const portBlocks = hostXml.match(/<port\s[^>]*>[\s\S]*?<\/port>/g) ?? []
+
+    for (const portXml of portBlocks) {
+      const protoMatch = portXml.match(/protocol="([^"]+)"/)
+      const portIdMatch = portXml.match(/portid="(\d+)"/)
+      const stateMatch = portXml.match(/<state\s+state="([^"]+)"/)
+      const serviceNameMatch = portXml.match(/<service\s[^>]*name="([^"]*)"/)
+      const productMatch = portXml.match(/product="([^"]*)"/)
+      const versionMatch = portXml.match(/version="([^"]*)"/)
+
       results.push({
         ip,
-        port: parseInt(portMatch[2], 10),
-        protocol: portMatch[1],
-        state: portMatch[3],
-        service: portMatch[4] ?? '',
-        product: portMatch[5] ?? '',
-        version: portMatch[6] ?? '',
+        port: parseInt(portIdMatch?.[1] ?? '0', 10),
+        protocol: protoMatch?.[1] ?? 'tcp',
+        state: stateMatch?.[1] ?? 'unknown',
+        service: serviceNameMatch?.[1] ?? '',
+        product: productMatch?.[1] ?? '',
+        version: versionMatch?.[1] ?? '',
       })
     }
   }

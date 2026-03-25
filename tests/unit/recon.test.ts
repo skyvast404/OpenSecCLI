@@ -79,6 +79,104 @@ describe('recon parsers', () => {
         version: '1.24',
       })
     })
+
+    it('handles self-closing service tags', () => {
+      const xml = `<nmaprun>
+  <host>
+    <address addr="10.0.0.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="80">
+        <state state="open"/>
+        <service name="http" product="nginx"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>`
+      const result = parseNmapOutput(xml)
+      expect(result).toHaveLength(1)
+      expect(result[0]).toMatchObject({
+        ip: '10.0.0.1',
+        port: 80,
+        protocol: 'tcp',
+        state: 'open',
+        service: 'http',
+        product: 'nginx',
+        version: '',
+      })
+    })
+
+    it('handles missing service info', () => {
+      const xml = `<nmaprun>
+  <host>
+    <address addr="10.0.0.2" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="9999">
+        <state state="open"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>`
+      const result = parseNmapOutput(xml)
+      expect(result).toHaveLength(1)
+      expect(result[0]).toMatchObject({
+        ip: '10.0.0.2',
+        port: 9999,
+        protocol: 'tcp',
+        state: 'open',
+        service: '',
+        product: '',
+        version: '',
+      })
+    })
+
+    it('handles multiple hosts', () => {
+      const xml = `<nmaprun>
+  <host>
+    <address addr="192.168.1.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open"/>
+        <service name="ssh" product="OpenSSH" version="8.9"/>
+      </port>
+    </ports>
+  </host>
+  <host>
+    <address addr="192.168.1.2" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="80">
+        <state state="open"/>
+        <service name="http" product="Apache" version="2.4"/>
+      </port>
+      <port protocol="tcp" portid="443">
+        <state state="closed"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>`
+      const result = parseNmapOutput(xml)
+      expect(result).toHaveLength(3)
+      expect(result[0]).toMatchObject({
+        ip: '192.168.1.1',
+        port: 22,
+        service: 'ssh',
+        product: 'OpenSSH',
+        version: '8.9',
+      })
+      expect(result[1]).toMatchObject({
+        ip: '192.168.1.2',
+        port: 80,
+        service: 'http',
+        product: 'Apache',
+      })
+      expect(result[2]).toMatchObject({
+        ip: '192.168.1.2',
+        port: 443,
+        state: 'closed',
+        service: '',
+        product: '',
+        version: '',
+      })
+    })
   })
 
   describe('parseFfufOutput', () => {
