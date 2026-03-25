@@ -1,233 +1,136 @@
 # Contributing to OpenSecCLI
 
-Thank you for your interest in contributing! The most impactful way to contribute is **adding a new security API adapter** — and it only takes one YAML file.
+## Quick Start: Add a YAML Adapter (15 minutes)
 
-## Adding a YAML Adapter (10 minutes)
-
-### Step 1: Create the file
+### 1. Scaffold
 
 ```bash
-mkdir -p src/adapters/<provider>
-touch src/adapters/<provider>/<action>.yaml
+opensec create adapter myapi/lookup --type yaml --strategy api_key --domain threat-intel
 ```
 
-Naming conventions:
-- `provider` = API provider name, lowercase (e.g., `virustotal`, `abuseipdb`, `abuse.ch`)
-- `action` = what the command does, lowercase with hyphens (e.g., `ip-check`, `hash-lookup`)
+This generates `myapi/lookup.yaml` with a template to fill in.
 
-### Step 2: Write the YAML
+### 2. Edit
+
+Fill in the `TODO` sections: API URL, request format, response mapping.
+
+### 3. Test locally
+
+Drop the file into `~/.openseccli/plugins/my-adapter/adapters/myapi/lookup.yaml` and run:
+
+```bash
+opensec list --domain threat-intel  # verify it appears
+opensec myapi lookup --target test  # verify it works
+```
+
+### 4. Submit
+
+- **Community adapters**: Open a PR to this repo under `src/adapters/`
+- **Plugin package**: Publish as `opensec-adapter-<name>` on npm
+
+---
+
+## Security Domains
+
+Every adapter must specify a `domain` field:
+
+| Domain | Description | Examples |
+|--------|-------------|----------|
+| `threat-intel` | Threat intelligence feeds and reputation lookups | VirusTotal, AbuseIPDB, Shodan |
+| `code-security` | Static analysis, SAST, code review | Semgrep, Gitleaks |
+| `recon` | Reconnaissance, asset discovery, OSINT | subfinder, nmap, httpx |
+| `vuln-scan` | Vulnerability scanning, misconfig detection | nuclei, nikto, testssl.sh |
+| `secrets` | Secret and credential detection | TruffleHog |
+| `supply-chain` | Dependency audit, CI/CD security, SBOM | npm audit, checkov, syft |
+| `cloud-security` | Cloud posture, IaC, containers, Kubernetes | checkov, trivy, kube-bench |
+| `forensics` | File analysis, binary RE, PCAP, mobile | binwalk, checksec, tshark |
+| `pentest` | Active testing utilities | HTTP request crafting, race testing |
+
+---
+
+## YAML Adapter Schema
 
 ```yaml
-provider: <provider>
-name: <action>
-description: One-line description of what this does
-strategy: FREE | API_KEY          # FREE = no auth needed
-auth: <provider>                  # omit if strategy is FREE
+provider: myapi           # Provider group name
+name: lookup              # Command name (opensec myapi lookup)
+description: "..."        # One-line description
+strategy: API_KEY         # FREE or API_KEY
+domain: threat-intel      # Security domain (see table above)
+auth: myapi               # Auth provider name (for API_KEY strategy)
 
 args:
-  <arg_name>:
-    type: string | number | boolean
-    required: true | false
-    default: <value>              # optional
-    choices: [a, b, c]            # optional
-    help: Description for --help
+  target:
+    type: string          # string, number, or boolean
+    required: true
+    help: "Target to look up"
 
 pipeline:
-  # 1. Make the API request
   - request:
-      url: https://api.example.com/endpoint
-      method: GET | POST
+      url: "https://api.example.com/v1/{{ args.target }}"
       headers:
-        Authorization: "Bearer {{ auth.api_key }}"    # if API_KEY strategy
-      params:                      # URL query parameters (GET)
-        key: "{{ args.arg_name }}"
-      body:                        # request body (POST)
-        key: "{{ args.arg_name }}"
+        Authorization: "Bearer {{ auth.api_key }}"
 
-  # 2. Extract data from response
   - select:
-      path: data.results           # dot-notation path to the array/object
+      path: data          # Extract nested array (optional)
 
-  # 3. Map fields to output columns
   - map:
       template:
-        column_a: "{{ item.field_a }}"
-        column_b: "{{ item.field_b }}"
-        column_c: "{{ item.nested.field }}"
+        id: "{{ item.id }}"
+        result: "{{ item.result }}"
 
-  # Optional: filter, sort, limit
-  - filter:
-      condition: "{{ item.score > 0 }}"
-  - sort:
-      key: score
-      reverse: true
-  - limit:
-      count: "{{ args.limit }}"
-
-columns: [column_a, column_b, column_c]
+columns: [id, result]
 ```
 
-### Step 3: Test locally
+---
+
+## TypeScript Adapter Guide
+
+Use TypeScript when you need to:
+- Wrap external CLI tools (nmap, nuclei, etc.)
+- Run multiple tools in parallel
+- Apply complex parsing logic
+- Implement pure-TypeScript functionality (no external deps)
 
 ```bash
-# Run in development mode
-npm run dev -- <provider> <action> [args]
-
-# Run tests
-npm test
+opensec create adapter my-scanner/scan --type typescript --domain vuln-scan
 ```
 
-### Step 4: Add a test
+---
 
-Create `tests/adapter/<provider>.test.ts`:
+## Code Standards
 
-```typescript
-import { describe, it, expect } from 'vitest'
+- **Immutability**: Create new objects, never mutate
+- **Functions**: < 50 lines
+- **Files**: < 800 lines
+- **Errors**: Use `ToolNotFoundError` for missing tools, `CliError` hierarchy for others
+- **Security**: Always use `execFile` (never `exec`), validate all user input
+- **Testing**: Every adapter needs at least a pipeline/registration test
 
-describe('<provider>/<action>', () => {
-  it('should return expected fields', async () => {
-    // Mock the API response
-    const mockResponse = { /* paste a real API response sample here */ }
+---
 
-    // Verify the adapter transforms it correctly
-    const result = await executeAdapter('<provider>/<action>', {
-      /* args */
-    }, { mockResponse })
-
-    expect(result).toHaveLength(/* expected */)
-    expect(result[0]).toHaveProperty('column_a')
-  })
-})
-```
-
-### Step 5: Submit PR
+## Testing
 
 ```bash
-git checkout -b add-<provider>-<action>
-git add src/adapters/<provider>/<action>.yaml tests/adapter/<provider>.test.ts
-git commit -m "feat: add <provider> <action> adapter"
-git push origin add-<provider>-<action>
+npm test              # Unit tests
+npm run test:adapter  # Adapter pipeline tests (mocked HTTP)
+npm run test:all      # Everything
 ```
 
-## Template Expression Reference
+### Writing adapter tests
 
-Use `{{ }}` in YAML to reference dynamic values:
-
-```
-{{ args.ip }}                            # CLI argument
-{{ auth.api_key }}                       # Stored credential
-{{ item.field }}                         # Current item in array
-{{ item.score > 80 ? 'HIGH' : 'LOW' }}  # Ternary expression
-{{ item.tags | join(', ') }}             # Array to string
-{{ item.name | upper }}                  # Uppercase
-{{ item.url | urlencode }}               # URL encode
-{{ value || 'N/A' }}                     # Default fallback
-{{ index + 1 }}                          # 1-based index
-```
-
-## Writing a TypeScript Adapter
-
-For complex logic (pagination, subprocess calls, multi-step workflows), use TypeScript:
+Mock `fetch` and test the full pipeline:
 
 ```typescript
-// src/adapters/example/complex-action.ts
-import { cli, Strategy } from 'openseccli/registry'
+import { executePipeline } from '../../src/pipeline/executor.js'
 
-cli({
-  provider: 'example',
-  name: 'complex-action',
-  description: 'Does something complex',
-  strategy: Strategy.API_KEY,
-  auth: 'example',
-  args: {
-    target: { type: 'string', required: true, help: 'Target to analyze' },
-    limit: { type: 'number', default: 20, help: 'Max results' },
-  },
-  columns: ['id', 'finding', 'severity', 'detail'],
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+  ok: true,
+  headers: new Headers({ 'content-type': 'application/json' }),
+  json: () => Promise.resolve(mockResponse),
+}))
 
-  async func(ctx, args) {
-    // ctx.auth has the resolved credentials
-    // ctx.log has the logger
-
-    const results = []
-    let page = 1
-
-    // Pagination loop
-    while (results.length < args.limit) {
-      const response = await fetch(
-        `https://api.example.com/scan?target=${args.target}&page=${page}`,
-        { headers: { 'Authorization': `Bearer ${ctx.auth.api_key}` } }
-      )
-      const data = await response.json()
-      if (!data.results?.length) break
-
-      results.push(...data.results.map(item => ({
-        id: item.id,
-        finding: item.title,
-        severity: item.severity,
-        detail: item.description,
-      })))
-      page++
-    }
-
-    return results.slice(0, args.limit)
-  },
+const result = await executePipeline(def.pipeline, {
+  args: { target: 'test' },
+  auth: { api_key: 'test-key' },
 })
-```
-
-## Project Structure
-
-```
-src/
-├── adapters/          ← YOU CONTRIBUTE HERE
-│   ├── abuse.ch/      # Free threat intelligence
-│   ├── nvd/           # CVE database
-│   ├── abuseipdb/     # IP reputation
-│   ├── virustotal/    # File/URL/IP analysis
-│   └── ...
-├── pipeline/          # Execution engine (steps)
-├── auth/              # Credential management
-├── cli.ts             # Command definitions
-├── registry.ts        # Command registry
-├── execution.ts       # Execution lifecycle
-├── output.ts          # Output formatting
-└── errors.ts          # Error types
-```
-
-## API Sources to Consider
-
-Looking for an adapter to build? Here are free APIs that don't have adapters yet:
-
-- [ ] urlscan.io — URL scanning and analysis
-- [ ] Censys — Internet-wide scan data
-- [ ] SecurityTrails — DNS and domain intel
-- [ ] Pulsedive — Threat intel enrichment
-- [ ] PhishTank — Phishing URL database
-- [ ] Hybrid Analysis — Malware sandbox
-- [ ] AlienVault OTX — Threat intelligence
-- [ ] EmailRep.io — Email reputation
-- [ ] IBM X-Force Exchange — Threat intel
-- [ ] Hunter.io — Email finder
-- [ ] CIRCL hashlookup — Hash database
-- [ ] MaxMind GeoLite2 — IP geolocation
-- [ ] Tor Exit Node List — Tor detection
-
-Check [Issues](../../issues) for adapter requests from users.
-
-## Code Style
-
-- TypeScript strict mode
-- ES modules (`import`/`export`)
-- Immutable patterns (no mutation)
-- Functions < 50 lines, files < 800 lines
-- No `console.log` — use the `log` object
-
-## Commit Messages
-
-```
-feat: add <provider> <action> adapter
-fix: handle empty response in <provider>
-refactor: extract shared validation logic
-docs: add <provider> adapter documentation
-test: add tests for <provider>
 ```
