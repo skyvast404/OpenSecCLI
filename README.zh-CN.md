@@ -464,6 +464,10 @@ Commander.js CLI
 
 架构详情见 [BLUEPRINT.md](./BLUEPRINT.md)。
 
+## Star 趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=skyvast404/OpenSecCLI&type=Date)](https://star-history.com/#skyvast404/OpenSecCLI&Date)
+
 ## 开源协议
 
 [Apache-2.0](./LICENSE)

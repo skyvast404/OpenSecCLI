@@ -464,6 +464,10 @@ Dual adapter system: **YAML** for simple API wrappers (one file, no code), **Typ
 
 See [BLUEPRINT.md](./BLUEPRINT.md) for full architecture details.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=skyvast404/OpenSecCLI&type=Date)](https://star-history.com/#skyvast404/OpenSecCLI&Date)
+
 ## License
 
 [Apache-2.0](./LICENSE)
