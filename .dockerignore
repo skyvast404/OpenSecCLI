@@ -6,4 +6,5 @@ coverage/
 docs/plans/
 tests/
 .vitepress/
-.claude/
+.claude/settings/
+.claude/memory/
