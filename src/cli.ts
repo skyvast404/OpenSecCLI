@@ -414,18 +414,39 @@ async function readStdinLines(): Promise<string[]> {
 }
 
 function handleError(error: unknown): never {
+  const isJson = process.argv.includes('--json') ||
+    process.argv.includes('--format') && process.argv[process.argv.indexOf('--format') + 1] === 'json'
+
   if (error instanceof CliError) {
-    const icon = ERROR_ICONS[error.code] ?? '✖'
-    process.stderr.write(`\n${icon} Error: ${error.message}\n`)
-    if (error.hint) {
-      process.stderr.write(chalk.gray(`  ${error.hint}\n`))
+    if (isJson) {
+      // Agent-friendly: structured JSON error on stdout
+      process.stdout.write(JSON.stringify({
+        error: true,
+        code: error.code,
+        message: error.message,
+        hint: error.hint ?? null,
+      }) + '\n')
+    } else {
+      const icon = ERROR_ICONS[error.code] ?? '✖'
+      process.stderr.write(`\n${icon} Error: ${error.message}\n`)
+      if (error.hint) {
+        process.stderr.write(chalk.gray(`  ${error.hint}\n`))
+      }
     }
     process.exit(EXIT_CODES.RUNTIME_ERROR)
   }
 
-  process.stderr.write(`\n✖ Unexpected error: ${(error as Error).message}\n`)
-  if (process.argv.includes('--debug')) {
-    process.stderr.write((error as Error).stack + '\n')
+  if (isJson) {
+    process.stdout.write(JSON.stringify({
+      error: true,
+      code: 'UNEXPECTED_ERROR',
+      message: (error as Error).message,
+    }) + '\n')
+  } else {
+    process.stderr.write(`\n✖ Unexpected error: ${(error as Error).message}\n`)
+    if (process.argv.includes('--debug')) {
+      process.stderr.write((error as Error).stack + '\n')
+    }
   }
   process.exit(EXIT_CODES.RUNTIME_ERROR)
 }

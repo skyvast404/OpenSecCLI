@@ -70,12 +70,10 @@ export async function executeCommand(
     throw error
   }
 
-  // 5. Check for empty results
+  // 5. Handle empty results — return empty array, not error
+  //    "No findings" is a success (exit 0), not an error
   if (result === null || result === undefined) {
-    throw new EmptyResultError(`No data returned from ${commandId}`)
-  }
-  if (Array.isArray(result) && result.length === 0) {
-    throw new EmptyResultError(`No results found`)
+    result = []
   }
 
   // 6. Render output
