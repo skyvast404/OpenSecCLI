@@ -17,6 +17,10 @@
 
 ---
 
+<p align="center">
+  <img src="demo/demo.gif" alt="OpenSecCLI Demo" width="800">
+</p>
+
 ## What is OpenSecCLI?
 
 OpenSecCLI unifies **84 security commands** across **20 providers** and **11 domains** into a single CLI. Query threat intel, scan for vulnerabilities, pentest APIs, audit cloud infrastructure, assess agent security -- all with consistent JSON output and pipe-friendly design.

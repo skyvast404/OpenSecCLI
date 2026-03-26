@@ -17,6 +17,10 @@
 
 ---
 
+<p align="center">
+  <img src="demo/demo.gif" alt="OpenSecCLI Demo" width="800">
+</p>
+
 ## OpenSecCLI 是什么？
 
 OpenSecCLI 将 **84 条安全命令**、**20 个数据源**、**11 个安全领域** 统一到一个 CLI 里。威胁情报查询、漏洞扫描、渗透测试、云安全审计、Agent 安全评估 -- 全部使用统一的 JSON 输出和管道友好设计。
