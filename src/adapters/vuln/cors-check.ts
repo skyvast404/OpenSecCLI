@@ -28,6 +28,10 @@ const CORS_TESTS: ReadonlyArray<{
   { name: 'subdomain-wildcard', origin: (domain) => `https://attacker.${domain}`, severity: 'high' },
   { name: 'http-downgrade', origin: (domain) => `http://${domain}`, severity: 'medium' },
   { name: 'third-party', origin: () => 'https://evil.com', severity: 'critical' },
+  { name: 'prefix-match', origin: (domain) => `https://${domain}.evil.com`, severity: 'high' },
+  { name: 'suffix-match', origin: (domain) => `https://evil${domain}`, severity: 'high' },
+  { name: 'backslash-bypass', origin: (domain) => `https://evil.com%60.${domain}`, severity: 'high' },
+  { name: 'special-chars', origin: (domain) => `https://${domain}_.evil.com`, severity: 'medium' },
 ]
 
 cli({
@@ -86,6 +90,34 @@ cli({
           severity: 'info',
         })
       }
+    }
+
+    // Preflight check: does the server allow dangerous methods from cross-origin?
+    try {
+      const preflightResponse = await fetch(url, {
+        method: 'OPTIONS',
+        headers: {
+          Origin: 'https://evil.com',
+          'Access-Control-Request-Method': 'PUT',
+          'Access-Control-Request-Headers': 'X-Custom-Header',
+        },
+        signal: AbortSignal.timeout(10_000),
+      })
+      const allowMethods = preflightResponse.headers.get('access-control-allow-methods') ?? ''
+      const allowHeaders = preflightResponse.headers.get('access-control-allow-headers') ?? ''
+      if (allowMethods.includes('PUT') || allowMethods.includes('DELETE')) {
+        results.push({
+          url,
+          test: 'preflight-dangerous-methods',
+          origin_sent: 'https://evil.com',
+          acao: allowMethods,
+          acac: allowHeaders,
+          vulnerable: true,
+          severity: 'high',
+        })
+      }
+    } catch {
+      // Preflight request failed — server may not support OPTIONS
     }
 
     const vulnCount = results.filter((r) => r.vulnerable).length
