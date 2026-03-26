@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npx vitest run --project unit
+
+      - name: Adapter tests
+        run: npx vitest run --project adapter
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify manifest
+        run: |
+          ADAPTER_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('dist/cli-manifest.json','utf8')).length)")
+          echo "Manifest contains $ADAPTER_COUNT adapters"
+          if [ "$ADAPTER_COUNT" -lt 50 ]; then
+            echo "ERROR: Expected at least 50 adapters, got $ADAPTER_COUNT"
+            exit 1
+          fi
+
+      - name: Smoke test
+        run: |
+          node dist/main.js list --format json > /dev/null
+          node dist/main.js crypto hash-id --hash 5d41402abc4b2a76b9719d911017c592 --format json > /dev/null
+          echo "Smoke tests passed"
