@@ -15,6 +15,24 @@
     ".": "./dist/main.js",
     "./registry": "./dist/registry-api.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "security",
+    "cli",
+    "pentest",
+    "threat-intelligence",
+    "sast",
+    "vulnerability-scanner"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/OpenSecCLI.git"
+  },
+  "homepage": "https://github.com/user/OpenSecCLI#readme",
   "scripts": {
     "dev": "tsx src/main.ts",
     "build": "npm run clean-dist && tsc && npm run copy-yaml && npm run build-manifest",
