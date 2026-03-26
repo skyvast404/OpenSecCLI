@@ -12,6 +12,7 @@ export const SECURITY_DOMAINS = {
   'cloud-security': 'Cloud posture, IaC, containers, Kubernetes',
   'forensics': 'File analysis, binary reverse engineering, PCAP, mobile',
   'pentest': 'Active testing utilities (HTTP, race conditions)',
+  'agent-security': 'Agent security assessment (attack patterns, detection, defense)',
 } as const
 
 export type SecurityDomain = keyof typeof SECURITY_DOMAINS
@@ -48,4 +49,6 @@ export const PROVIDER_DOMAIN_MAP: Record<string, SecurityDomain> = {
   'crypto': 'forensics',
   // Pentest
   'pentest': 'pentest',
+  // Agent security
+  'agent-security': 'agent-security',
 }
