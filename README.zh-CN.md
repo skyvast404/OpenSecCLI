@@ -24,9 +24,9 @@ $ opensec nvd cve-get CVE-2024-3094
 
 ## 亮点
 
-- **46 条命令**，覆盖 16 个提供商 —— 侦查、漏洞扫描、密钥检测、供应链、云安全、取证等全覆盖
+- **62 条命令**，覆盖 19 个提供商 —— 侦查、漏洞扫描、密钥检测、供应链、云安全、取证、Agent 安全、SAST 等全覆盖
 - **6 个纯 TypeScript 适配器**，零外部依赖（header-audit、cors-check、hash-id、http-request、race-test、ci-audit）
-- **6 个 Claude Code Skills** —— AI 驱动的调查工作流（IOC 调查、代码审计、应急响应等）
+- **22 个 Claude Code Skills** —— AI 驱动的调查与渗透工作流（IOC 调查、代码审计、应急响应、Web/API/网络渗透、Agent 安全等）
 - **多源聚合查询** —— 并行查 5 个威胁情报 API，输出共识判定
 - **一个 YAML = 一条命令** —— 贡献者不需要写 TypeScript
 - **原生管道** —— stdin/stdout、`--json`、`--silent`，兼容 ProjectDiscovery 生态
@@ -163,10 +163,39 @@ $ opensec enrichment ip-enrich 185.220.101.34
 |------|------|------|
 | `opensec pentest http-request <url>` | 纯 TS | 构造 HTTP 请求发送（零依赖） |
 | `opensec pentest race-test <url>` | 纯 TS | 并发竞态条件测试（零依赖） |
+| `opensec pentest fuzz <url>` | 纯 TS | 参数模糊测试（安全 Payload） |
+
+### Agent 安全（Agent Security）
+
+| 命令 | 说明 |
+|------|------|
+| `opensec agent-security scan-skill <path>` | 扫描 Claude Code Skills 的提示注入、数据泄露、凭据暴露 |
+| `opensec agent-security mcp-audit <path>` | 审计 MCP 服务器工具描述的投毒与 rug-pull 风险 |
+| `opensec agent-security grade-results <file>` | 评分 Agent 安全测试结果（SAFE/UNSAFE/BLOCKED/INCONCLUSIVE） |
+| `opensec agent-security analyze-coverage <file>` | 分析攻击语料库对 OWASP ASI Top 10 和 MITRE ATLAS 的覆盖率 |
+| `opensec agent-security defense-validation <file>` | 验证防御有效性（precision/recall/F1 评分） |
+| `opensec agent-security manage-kb` | 管理 Agent 安全知识库（攻击模式、检测规则） |
+| `opensec agent-security normalize-cases <file>` | 将原始测试源规范化为标准攻击用例格式 |
+| `opensec agent-security generate-variants <file>` | 将套件清单展开为具体的变异测试用例 |
+| `opensec agent-security write-report <file>` | 从评分结果生成 Agent 安全评估报告 |
+
+### 静态分析与扫描流水线（SAST & Scan）
+
+| 命令 | 说明 |
+|------|------|
+| `opensec scan full <path>` | 完整安全扫描流水线：发现、分析、报告 |
+| `opensec scan discover <path>` | 构建安全项目地图（语言、框架、入口点） |
+| `opensec scan analyze <path>` | 运行静态分析（semgrep、gitleaks）及自定义规则 |
+| `opensec scan report <path>` | 生成扫描报告（JSON、SARIF、Markdown） |
+| `opensec scan entrypoints <path>` | 查找 HTTP 路由、RPC Handler 等入口点 |
+| `opensec scan git-signals <path>` | 从 Git 历史中提取安全相关提交 |
+| `opensec scan context-builder <path>` | 构建面向 LLM 分析的安全代码上下文包 |
+| `opensec scan triage-memory` | 管理分类记忆：假阳性跟踪与跳过逻辑 |
+| `opensec scan benchmark <path>` | 运行扫描器基准测试，度量检测质量（precision/recall/F1） |
 
 ## Claude Code Skills
 
-六个 AI 驱动的调查工作流，可作为 Claude Code 斜杠命令使用：
+22 个 AI 驱动的调查与渗透工作流，可作为 Claude Code 斜杠命令使用：
 
 | Skill | 说明 |
 |-------|------|
@@ -176,6 +205,22 @@ $ opensec enrichment ip-enrich 185.220.101.34
 | `cve-impact-check` | 评估 CVE 对基础设施的影响 |
 | `attack-surface-map` | 映射域名/组织的外部攻击面 |
 | `domain-recon` | 全面域名侦查与情报收集 |
+| `web-pentest` | Web 应用渗透测试工作流 |
+| `api-pentest` | API 安全测试工作流 |
+| `network-pentest` | 网络渗透测试工作流 |
+| `supply-chain-audit` | 供应链安全审计 |
+| `cloud-audit` | 云安全态势评估 |
+| `whitebox-code-review` | 白盒代码安全审查 |
+| `business-logic-test` | 业务逻辑漏洞测试 |
+| `exploit-validation` | 漏洞利用验证与 PoC |
+| `semantic-hunter` | 语义漏洞挖掘 |
+| `security-triage` | 安全发现分类与优先级排序 |
+| `missed-patch-hunter` | 查找遗漏补丁与不完整修复 |
+| `detect-semantic-attack` | 检测代码中的语义攻击 |
+| `agent-security-suite` | Agent/LLM 安全测试套件 |
+| `agent-attack-research` | Agent 攻击研究与分析 |
+| `ctf-toolkit` | CTF 竞赛解题工具包 |
+| `ai-llm-pentest` | AI/LLM 应用渗透测试 |
 
 ## 输出格式
 
@@ -255,6 +300,15 @@ columns: [uuid, result_url]
 ### 等待认领的 API
 
 urlscan.io、Censys、SecurityTrails、Pulsedive、PhishTank、Hybrid Analysis、AlienVault OTX、EmailRep.io、IBM X-Force、Hunter.io、CIRCL hashlookup、MaxMind GeoLite2、Tor Exit Node List — [查看 Issues](../../issues)。
+
+## 检测能力升级
+
+vuln/scan 引擎的近期增强：
+
+- **CSP 解析器** — 完整的 Content-Security-Policy 指令分析（`header-audit`）
+- **Cookie 分析器** — SameSite、Secure、HttpOnly、Prefix 验证
+- **Payload 库** — 内置 XSS、SQLi、路径穿越模糊测试 Payload
+- **自定义 semgrep 规则** — 项目专用 SAST 规则（`scan/rules/`）
 
 ## 架构
 

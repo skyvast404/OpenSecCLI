@@ -24,9 +24,9 @@ $ opensec nvd cve-get CVE-2024-3094
 
 ## Highlights
 
-- **46 commands** across 16 providers — recon, vuln scanning, secrets, supply-chain, cloud, forensics, and more
+- **62 commands** across 19 providers — recon, vuln scanning, secrets, supply-chain, cloud, forensics, agent security, SAST, and more
 - **6 pure-TypeScript adapters** with zero external dependencies (header-audit, cors-check, hash-id, http-request, race-test, ci-audit)
-- **6 Claude Code Skills** — AI-powered investigation workflows (IOC investigate, code audit, incident response, etc.)
+- **22 Claude Code Skills** — AI-powered investigation & pentest workflows (IOC investigate, code audit, incident response, web/API/network pentest, agent security, etc.)
 - **Multi-source enrichment** — query 5 threat intel APIs in parallel, get a consensus verdict
 - **One YAML file = one command** — contributors don't need to write TypeScript
 - **Pipe-native** — stdin/stdout, `--json`, `--silent`, compatible with ProjectDiscovery ecosystem
@@ -163,10 +163,39 @@ Only queries sources you have API keys for. ThreatFox is always free.
 |---------|---------|-------------|
 | `opensec pentest http-request <url>` | pure TS | Crafted HTTP request sender (zero deps) |
 | `opensec pentest race-test <url>` | pure TS | Concurrent race condition tester (zero deps) |
+| `opensec pentest fuzz <url>` | pure TS | Parameter fuzzing with security payloads |
+
+### Agent Security
+
+| Command | Description |
+|---------|-------------|
+| `opensec agent-security scan-skill <path>` | Scan Claude Code skills for prompt injection, data exfiltration, credential exposure |
+| `opensec agent-security mcp-audit <path>` | Audit MCP server tool descriptions for poisoning and rug-pull risks |
+| `opensec agent-security grade-results <file>` | Grade agent security test results (SAFE/UNSAFE/BLOCKED/INCONCLUSIVE) |
+| `opensec agent-security analyze-coverage <file>` | Analyze attack corpus coverage against OWASP ASI Top 10 and MITRE ATLAS |
+| `opensec agent-security defense-validation <file>` | Validate defense effectiveness with precision/recall/F1 scoring |
+| `opensec agent-security manage-kb` | Manage agent security knowledge base (attack patterns, detection rules) |
+| `opensec agent-security normalize-cases <file>` | Normalize raw security test sources into canonical attack case format |
+| `opensec agent-security generate-variants <file>` | Expand suite manifests into concrete mutated test cases |
+| `opensec agent-security write-report <file>` | Generate agent security assessment report from grading results |
+
+### SAST & Scan Pipeline
+
+| Command | Description |
+|---------|-------------|
+| `opensec scan full <path>` | Full security scan pipeline: discover, analyze, report |
+| `opensec scan discover <path>` | Build security-focused project map (languages, frameworks, entry points) |
+| `opensec scan analyze <path>` | Run static analysis (semgrep, gitleaks) with custom rules |
+| `opensec scan report <path>` | Generate scan reports (JSON, SARIF, Markdown) |
+| `opensec scan entrypoints <path>` | Find HTTP routes, RPC handlers, and other entry points |
+| `opensec scan git-signals <path>` | Extract security-relevant commits from git history |
+| `opensec scan context-builder <path>` | Build security-focused code context bundles for LLM analysis |
+| `opensec scan triage-memory` | Manage triage memory for false-positive tracking and skip logic |
+| `opensec scan benchmark <path>` | Run scanner benchmarks and measure detection quality (precision/recall/F1) |
 
 ## Claude Code Skills
 
-Six AI-powered investigation workflows, available as Claude Code slash commands:
+22 AI-powered investigation & pentest workflows, available as Claude Code slash commands:
 
 | Skill | Description |
 |-------|-------------|
@@ -176,6 +205,22 @@ Six AI-powered investigation workflows, available as Claude Code slash commands:
 | `cve-impact-check` | Assess CVE impact on your infrastructure |
 | `attack-surface-map` | Map external attack surface for a domain/org |
 | `domain-recon` | Full domain reconnaissance and intelligence gathering |
+| `web-pentest` | Web application penetration testing workflow |
+| `api-pentest` | API security testing workflow |
+| `network-pentest` | Network penetration testing workflow |
+| `supply-chain-audit` | Supply chain security audit |
+| `cloud-audit` | Cloud security posture assessment |
+| `whitebox-code-review` | White-box code security review |
+| `business-logic-test` | Business logic vulnerability testing |
+| `exploit-validation` | Exploit validation and proof-of-concept |
+| `semantic-hunter` | Semantic vulnerability hunting |
+| `security-triage` | Security finding triage and prioritization |
+| `missed-patch-hunter` | Find missed patches and incomplete fixes |
+| `detect-semantic-attack` | Detect semantic attacks in code |
+| `agent-security-suite` | Agent/LLM security testing suite |
+| `agent-attack-research` | Agent attack research and analysis |
+| `ctf-toolkit` | CTF challenge solving toolkit |
+| `ai-llm-pentest` | AI/LLM application penetration testing |
 
 ## Output Formats
 
@@ -255,6 +300,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 ### APIs waiting for adapters
 
 urlscan.io, Censys, SecurityTrails, Pulsedive, PhishTank, Hybrid Analysis, AlienVault OTX, EmailRep.io, IBM X-Force, Hunter.io, CIRCL hashlookup, MaxMind GeoLite2, Tor Exit Node List — [see Issues](../../issues).
+
+## Detection Upgrades
+
+Recent additions to the vuln/scan engine:
+
+- **CSP parser** — full Content-Security-Policy directive analysis in `header-audit`
+- **Cookie analyzer** — SameSite, Secure, HttpOnly, Prefix validation
+- **Payload library** — built-in fuzzing payloads for XSS, SQLi, path traversal
+- **Custom semgrep rules** — project-specific SAST rules shipped in `scan/rules/`
 
 ## Architecture
 
