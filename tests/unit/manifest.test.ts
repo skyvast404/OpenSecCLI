@@ -73,7 +73,7 @@ describe('cli-manifest', () => {
       const dir = join(adaptersDir, provider.name)
       const files = readdirSync(dir)
         .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts') && !f.endsWith('.d.ts'))
-        .filter(f => !['types.ts', 'parsers.ts'].includes(f))
+        .filter(f => !['types.ts', 'parsers.ts', 'payloads.ts', 'csp-parser.ts', 'cookie-analyzer.ts'].includes(f))
 
       for (const file of files) {
         const content = readFileSync(join(dir, file), 'utf-8')

@@ -171,5 +171,56 @@ describe('vuln parsers', () => {
         expect(r.url).toBe('https://test.dev')
       }
     })
+
+    it('checks Cross-Origin-Opener-Policy header', () => {
+      const result = auditHeaders('https://example.com', {})
+      const coop = result.find(
+        (r) => r.header === 'Cross-Origin-Opener-Policy',
+      )
+      expect(coop).toBeDefined()
+      expect(coop!.status).toBe('MISSING')
+      expect(coop!.severity).toBe('medium')
+    })
+
+    it('checks Cross-Origin-Resource-Policy header', () => {
+      const result = auditHeaders('https://example.com', {})
+      const corp = result.find(
+        (r) => r.header === 'Cross-Origin-Resource-Policy',
+      )
+      expect(corp).toBeDefined()
+      expect(corp!.status).toBe('MISSING')
+      expect(corp!.severity).toBe('medium')
+    })
+
+    it('checks Cross-Origin-Embedder-Policy header', () => {
+      const result = auditHeaders('https://example.com', {})
+      const coep = result.find(
+        (r) => r.header === 'Cross-Origin-Embedder-Policy',
+      )
+      expect(coep).toBeDefined()
+      expect(coep!.status).toBe('MISSING')
+      expect(coep!.severity).toBe('low')
+    })
+
+    it('marks Cross-Origin headers as PRESENT when set', () => {
+      const headers: Record<string, string> = {
+        'cross-origin-opener-policy': 'same-origin',
+        'cross-origin-resource-policy': 'same-origin',
+        'cross-origin-embedder-policy': 'require-corp',
+      }
+      const result = auditHeaders('https://example.com', headers)
+      const coop = result.find(
+        (r) => r.header === 'Cross-Origin-Opener-Policy',
+      )
+      const corp = result.find(
+        (r) => r.header === 'Cross-Origin-Resource-Policy',
+      )
+      const coep = result.find(
+        (r) => r.header === 'Cross-Origin-Embedder-Policy',
+      )
+      expect(coop!.status).toBe('PRESENT')
+      expect(corp!.status).toBe('PRESENT')
+      expect(coep!.status).toBe('PRESENT')
+    })
   })
 })

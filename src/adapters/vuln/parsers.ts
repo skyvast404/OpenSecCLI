@@ -87,6 +87,21 @@ const SECURITY_HEADERS: ReadonlyArray<{
     severity: 'info',
     recommendation: 'Set to 0 (modern browsers use CSP instead). Avoid "1; mode=block" which has XSS edge cases.',
   },
+  {
+    header: 'Cross-Origin-Opener-Policy',
+    severity: 'medium',
+    recommendation: 'Add: Cross-Origin-Opener-Policy: same-origin',
+  },
+  {
+    header: 'Cross-Origin-Resource-Policy',
+    severity: 'medium',
+    recommendation: 'Add: Cross-Origin-Resource-Policy: same-origin',
+  },
+  {
+    header: 'Cross-Origin-Embedder-Policy',
+    severity: 'low',
+    recommendation: 'Add: Cross-Origin-Embedder-Policy: require-corp',
+  },
 ]
 
 export function auditHeaders(url: string, headers: Record<string, string>): HeaderAuditResult[] {
