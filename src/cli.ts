@@ -10,9 +10,13 @@ import { executeCommand } from './execution.js'
 import { listAuth, saveAuth, removeAuth, loadAuth } from './auth/index.js'
 import { render } from './output.js'
 import { CliError, ERROR_ICONS } from './errors.js'
-import { EXIT_CODES } from './constants.js'
+import { EXIT_CODES, CONFIG_DIR_NAME } from './constants.js'
 import { createAdapter } from './commands/create.js'
 import { SECURITY_DOMAINS } from './constants/domains.js'
+import { checkToolInstalled, getToolVersion } from './adapters/_utils/tool-runner.js'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
 import type { CliCommand, Arg } from './types.js'
 
 export function createCli(version: string): Command {
@@ -175,16 +179,111 @@ export function createCli(version: string): Command {
     .action(async () => {
       const registry = getRegistry()
       const authProviders = listAuth()
+      const globalOpts = program.opts()
+      const format = globalOpts.json ? 'json' : (globalOpts.format ?? 'table')
 
       process.stderr.write(`\n  ${chalk.bold('OpenSecCLI Doctor')}\n\n`)
+
+      // --- Node.js version check ---
+      const nodeVersionRaw = process.version.replace(/^v/, '')
+      const nodeMajor = parseInt(nodeVersionRaw.split('.')[0], 10)
+      const nodeOk = nodeMajor >= 20
+      process.stderr.write(
+        nodeOk
+          ? chalk.green(`  ✓ Node.js ${process.version} (>=20.0.0)\n`)
+          : chalk.red(`  ✗ Node.js ${process.version} — requires >=20.0.0\n`),
+      )
+
       process.stderr.write(`  ✓ opensec version ${version}\n`)
-      process.stderr.write(`  ✓ Node.js ${process.version}\n`)
       process.stderr.write(`  ✓ ${registry.size} adapters loaded\n`)
-      process.stderr.write(`  ✓ ${authProviders.length} auth providers configured`)
+
+      // --- Plugin directory status ---
+      const pluginsDir = join(homedir(), CONFIG_DIR_NAME, 'plugins')
+      const pluginsDirExists = existsSync(pluginsDir)
+      process.stderr.write(
+        pluginsDirExists
+          ? chalk.green(`  ✓ Plugin directory exists: ${pluginsDir}\n`)
+          : chalk.yellow(`  - Plugin directory not found: ${pluginsDir}\n`),
+      )
+
+      // --- External security tools ---
+      const toolGroups: Record<string, string[]> = {
+        recon: ['subfinder', 'amass', 'httpx', 'whatweb', 'nmap', 'masscan', 'ffuf', 'dirsearch', 'feroxbuster'],
+        vuln: ['nuclei', 'nikto', 'testssl.sh', 'testssl'],
+        secrets: ['trufflehog', 'gitleaks'],
+        scan: ['semgrep'],
+        'supply-chain': ['trivy', 'syft', 'cyclonedx-cli'],
+        cloud: ['checkov', 'terrascan', 'kube-bench', 'kube-hunter'],
+        forensics: ['exiftool', 'binwalk', 'checksec', 'tshark', 'aapt2'],
+      }
+
+      process.stderr.write('\n  Checking external tools...\n')
+
+      const toolRows: Array<{ category: string; tool: string; status: string; version: string }> = []
+
+      const checkPromises: Array<Promise<void>> = []
+      for (const [category, tools] of Object.entries(toolGroups)) {
+        for (const tool of tools) {
+          checkPromises.push(
+            (async () => {
+              const installed = await checkToolInstalled(tool)
+              let ver = ''
+              if (installed) {
+                const v = await getToolVersion(tool)
+                ver = v ?? ''
+              }
+              toolRows.push({
+                category,
+                tool,
+                status: installed ? 'installed' : 'missing',
+                version: ver,
+              })
+            })(),
+          )
+        }
+      }
+      await Promise.all(checkPromises)
+
+      // Sort tool rows by category then tool name for stable output
+      const categoryOrder = Object.keys(toolGroups)
+      toolRows.sort((a, b) => {
+        const catDiff = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category)
+        if (catDiff !== 0) return catDiff
+        return a.tool.localeCompare(b.tool)
+      })
+
+      const installedCount = toolRows.filter(r => r.status === 'installed').length
+      const totalCount = toolRows.length
+      process.stderr.write(`  ${installedCount}/${totalCount} tools installed\n\n`)
+
+      // --- API keys ---
+      const apiKeyProviders = ['virustotal', 'abuseipdb', 'greynoise', 'ipinfo', 'shodan']
+      const keyRows: Array<{ category: string; tool: string; status: string; version: string }> = []
+
+      for (const provider of apiKeyProviders) {
+        const creds = loadAuth(provider)
+        const configured = creds?.api_key ? true : false
+        keyRows.push({
+          category: 'api-keys',
+          tool: provider,
+          status: configured ? 'configured' : 'missing',
+          version: configured ? '***' : '',
+        })
+      }
+
+      const configuredKeyCount = keyRows.filter(r => r.status === 'configured').length
+      process.stderr.write(`  ${configuredKeyCount}/${apiKeyProviders.length} API keys configured`)
       if (authProviders.length > 0) {
         process.stderr.write(` (${authProviders.join(', ')})`)
       }
       process.stderr.write('\n\n')
+
+      // --- Render table ---
+      const allRows = [...toolRows, ...keyRows]
+      render(allRows, {
+        format: format as 'table' | 'json' | 'csv' | 'yaml' | 'markdown',
+        columns: ['category', 'tool', 'status', 'version'],
+      })
     })
 
   return program
