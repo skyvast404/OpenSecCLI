@@ -1,0 +1,20 @@
+services:
+  opensec:
+    build: .
+    image: opensec:latest
+    volumes:
+      - ./:/workspace:ro
+      - opensec-auth:/root/.openseccli
+    environment:
+      # Add your API keys here:
+      # - OPENSECCLI_VIRUSTOTAL_API_KEY=your-key
+      # - OPENSECCLI_ABUSEIPDB_API_KEY=your-key
+      # - OPENSECCLI_SHODAN_API_KEY=your-key
+      # - OPENSECCLI_GREYNOISE_API_KEY=your-key
+      # - OPENSECCLI_IPINFO_API_KEY=your-key
+      # - SNYK_TOKEN=your-token
+      - NODE_NO_WARNINGS=1
+    entrypoint: ["node", "/app/dist/main.js"]
+
+volumes:
+  opensec-auth:

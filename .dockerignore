@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.git/
+*.tsbuildinfo
+coverage/
+docs/plans/
+tests/
+.vitepress/
+.claude/
