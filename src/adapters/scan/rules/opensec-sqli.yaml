@@ -1,0 +1,26 @@
+rules:
+  - id: opensec-sqli-fstring
+    patterns:
+      - pattern: |
+          $QUERY = f"...{$INPUT}..."
+      - metavariable-regex:
+          metavariable: $QUERY
+          regex: (?i)(select|insert|update|delete|drop)
+    message: "SQL injection via f-string. Use parameterized queries."
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe:
+        - "CWE-89: SQL Injection"
+      owasp:
+        - "A03:2021 Injection"
+
+  - id: opensec-sqli-concat-js
+    patterns:
+      - pattern: $DB.query("..." + $INPUT + "...")
+    message: "SQL injection via string concatenation. Use parameterized queries."
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe:
+        - "CWE-89: SQL Injection"

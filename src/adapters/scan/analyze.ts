@@ -4,10 +4,27 @@
  * Normalizes and deduplicates findings into a unified RawFinding format.
  */
 
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { existsSync } from 'node:fs'
+
 import { cli, Strategy } from '../../registry.js'
 import type { AdapterResult, ExecContext } from '../../types.js'
 import type { RawFinding, Severity, PhaseMetric } from './types.js'
 import { checkToolInstalled, runTool } from '../_utils/tool-runner.js'
+
+// --- Curated Security Rulesets ---
+
+const SEMGREP_SECURITY_CONFIGS = [
+  'p/security-audit',
+  'p/owasp-top-ten',
+  'p/command-injection',
+  'p/sql-injection',
+  'p/xss',
+  'p/jwt',
+  'p/secrets',
+  'p/insecure-transport',
+]
 
 // --- Severity Mapping ---
 
@@ -87,9 +104,15 @@ export function deduplicateFindings(findings: RawFinding[]): RawFinding[] {
 async function runSemgrep(repoPath: string, ctx: ExecContext): Promise<{ findings: RawFinding[]; metric: PhaseMetric }> {
   const start = Date.now()
   try {
+    const configArgs = SEMGREP_SECURITY_CONFIGS.flatMap(c => ['--config', c])
+    // Also add custom rules dir if it exists
+    const customRulesDir = join(dirname(fileURLToPath(import.meta.url)), 'rules')
+    if (existsSync(customRulesDir)) {
+      configArgs.push('--config', customRulesDir)
+    }
     const result = await runTool({
       tool: 'semgrep',
-      args: ['scan', '--json', '--config', 'auto', repoPath],
+      args: ['scan', '--json', '--severity', 'WARNING', ...configArgs, repoPath],
       timeout: 120,
     })
     const output = JSON.parse(result.stdout)

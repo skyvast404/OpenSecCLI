@@ -1,0 +1,18 @@
+rules:
+  - id: opensec-jwt-none-alg
+    pattern: jwt.decode($TOKEN, ..., algorithms=[..., "none", ...], ...)
+    message: "JWT 'none' algorithm accepted. Remove 'none' from allowed algorithms."
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe:
+        - "CWE-327: Broken Crypto"
+
+  - id: opensec-jwt-no-verify
+    pattern: jwt.decode($TOKEN, ..., options={..., verify: false, ...})
+    message: "JWT signature verification disabled. Enable verification."
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe:
+        - "CWE-345: Insufficient Verification"

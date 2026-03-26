@@ -18,7 +18,17 @@ function copyYaml(srcDir, destDir) {
   }
 }
 
+// Copy all YAML files from src/adapters to dist/adapters (recursive).
+// This includes adapter config YAML files AND custom semgrep rules
+// located at src/adapters/scan/rules/*.yaml.
 const src = path.join(__dirname, '..', 'src', 'adapters')
 const dest = path.join(__dirname, '..', 'dist', 'adapters')
 fs.mkdirSync(dest, { recursive: true })
 copyYaml(src, dest)
+
+// Verify scan rules were copied
+const scanRulesDest = path.join(dest, 'scan', 'rules')
+if (fs.existsSync(scanRulesDest)) {
+  const ruleFiles = fs.readdirSync(scanRulesDest).filter(f => f.endsWith('.yaml'))
+  console.log(`Copied ${ruleFiles.length} custom semgrep rule files to dist/adapters/scan/rules/`)
+}

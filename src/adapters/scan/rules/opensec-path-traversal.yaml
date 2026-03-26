@@ -1,0 +1,23 @@
+rules:
+  - id: opensec-path-traversal-join
+    patterns:
+      - pattern: |
+          $PATH = path.join(..., $INPUT, ...)
+          ...
+          fs.$FUNC($PATH, ...)
+    message: "Path traversal: user input in path.join(). Use path.resolve() + startsWith() check."
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      cwe:
+        - "CWE-22: Path Traversal"
+
+  - id: opensec-path-traversal-python
+    patterns:
+      - pattern: open(os.path.join(..., $INPUT, ...), ...)
+    message: "Path traversal: user input in os.path.join(). Use os.path.realpath() + check."
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe:
+        - "CWE-22: Path Traversal"

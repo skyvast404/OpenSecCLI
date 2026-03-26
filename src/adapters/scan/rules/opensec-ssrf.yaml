@@ -1,0 +1,22 @@
+rules:
+  - id: opensec-ssrf-requests
+    patterns:
+      - pattern: requests.get($URL, ...)
+      - pattern-not: requests.get("...", ...)
+    message: "SSRF risk: variable URL in requests.get(). Validate against allowlist."
+    severity: WARNING
+    languages: [python]
+    metadata:
+      cwe:
+        - "CWE-918: Server-Side Request Forgery"
+
+  - id: opensec-ssrf-fetch
+    patterns:
+      - pattern: fetch($URL, ...)
+      - pattern-not: fetch("...", ...)
+    message: "SSRF risk: variable URL in fetch(). Validate against allowlist."
+    severity: WARNING
+    languages: [javascript, typescript]
+    metadata:
+      cwe:
+        - "CWE-918: Server-Side Request Forgery"
