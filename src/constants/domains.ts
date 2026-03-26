@@ -13,6 +13,7 @@ export const SECURITY_DOMAINS = {
   'forensics': 'File analysis, binary reverse engineering, PCAP, mobile',
   'pentest': 'Active testing utilities (HTTP, race conditions)',
   'agent-security': 'Agent security assessment (attack patterns, detection, defense)',
+  'dast': 'Dynamic application security testing',
 } as const
 
 export type SecurityDomain = keyof typeof SECURITY_DOMAINS
@@ -51,4 +52,6 @@ export const PROVIDER_DOMAIN_MAP: Record<string, SecurityDomain> = {
   'pentest': 'pentest',
   // Agent security
   'agent-security': 'agent-security',
+  // DAST
+  'dast': 'dast',
 }
