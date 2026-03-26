@@ -1,61 +1,37 @@
-# OpenSecCLI
+<p align="center">
+  <strong>One CLI for your entire security workflow.</strong>
+</p>
 
-> Turn any security API into a CLI command with one YAML file.
+<p align="center">
+  <a href="https://www.npmjs.com/package/openseccli"><img src="https://img.shields.io/npm/v/openseccli?style=flat-square&color=cb3837" alt="npm"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/openseccli?style=flat-square&color=339933" alt="node"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/user/OpenSecCLI?style=flat-square" alt="license"></a>
+  <img src="https://img.shields.io/badge/tests-337%20passed-brightgreen?style=flat-square" alt="tests">
+  <img src="https://img.shields.io/badge/commands-84-blue?style=flat-square" alt="commands">
+  <img src="https://img.shields.io/badge/claude%20code%20skills-30-blueviolet?style=flat-square" alt="skills">
+</p>
 
-English | [中文文档](./README.zh-CN.md)
+<p align="center">
+  English | <a href="./README.zh-CN.md">中文文档</a>
+</p>
 
-[![npm version](https://img.shields.io/npm/v/openseccli?style=flat-square)](https://www.npmjs.com/package/openseccli)
-[![Node.js](https://img.shields.io/node/v/openseccli?style=flat-square)](https://nodejs.org)
-[![License](https://img.shields.io/github/license/user/OpenSecCLI?style=flat-square)](./LICENSE)
+---
+
+## What is OpenSecCLI?
+
+OpenSecCLI unifies **84 security commands** across **20 providers** and **11 domains** into a single CLI. Query threat intel, scan for vulnerabilities, pentest APIs, audit cloud infrastructure, assess agent security -- all with consistent JSON output and pipe-friendly design.
+
+Built for **security professionals** who want one tool instead of twenty. Built for **AI agents** that need structured output and predictable error handling.
 
 ```bash
 npm install -g openseccli
 ```
 
-```bash
-$ opensec nvd cve-get CVE-2024-3094
-┌───────────────┬────────────┬──────────┬──────────┬─────────────────────┬──────────────────────────────────────┐
-│ cve_id        │ cvss_score │ severity │ status   │ published           │ description                          │
-├───────────────┼────────────┼──────────┼──────────┼─────────────────────┼──────────────────────────────────────┤
-│ CVE-2024-3094 │ 10         │ CRITICAL │ Modified │ 2024-03-29T17:15:21 │ Malicious code was discovered in ... │
-└───────────────┴────────────┴──────────┴──────────┴─────────────────────┴──────────────────────────────────────┘
-1 item · 1.0s · from nvd
-```
-
-## Highlights
-
-- **62 commands** across 19 providers — recon, vuln scanning, secrets, supply-chain, cloud, forensics, agent security, SAST, and more
-- **6 pure-TypeScript adapters** with zero external dependencies (header-audit, cors-check, hash-id, http-request, race-test, ci-audit)
-- **22 Claude Code Skills** — AI-powered investigation & pentest workflows (IOC investigate, code audit, incident response, web/API/network pentest, agent security, etc.)
-- **Multi-source enrichment** — query 5 threat intel APIs in parallel, get a consensus verdict
-- **One YAML file = one command** — contributors don't need to write TypeScript
-- **Pipe-native** — stdin/stdout, `--json`, `--silent`, compatible with ProjectDiscovery ecosystem
-- **5 output formats** — table, JSON, CSV, YAML, Markdown
-- **Inspired by [OpenCLI](https://github.com/jackwener/opencli)** — same architecture, security-focused
-
-## Quick Start
+## Quick Demo
 
 ```bash
-# No API key needed — works immediately
-opensec nvd cve-search --keyword log4j --limit 5
-opensec abuse.ch threatfox-search --ioc 185.220.101.34
-opensec crtsh cert-search --domain example.com
-opensec abuse.ch feodo-list --limit 10
-
-# Add API keys to unlock more sources
-opensec auth add virustotal --api-key
-opensec auth add abuseipdb --api-key
-
-# Multi-source IP enrichment (the killer feature)
-opensec enrichment ip-enrich 185.220.101.34
-```
-
-## Multi-Source Enrichment
-
-One command. Five sources. Parallel queries. Consensus verdict.
-
-```bash
-$ opensec enrichment ip-enrich 185.220.101.34
+# Multi-source threat intel -- queries 5 APIs in parallel, returns consensus verdict
+$ opensec enrichment ip-enrich 203.0.113.5
 
   Source        Status   Verdict      Detail
   AbuseIPDB     ok       Malicious    abuse_score: 100, country: DE, total_reports: 847
@@ -63,191 +39,358 @@ $ opensec enrichment ip-enrich 185.220.101.34
   GreyNoise     ok       Malicious    classification: malicious, noise: true
   ipinfo        ok       -            country: DE, org: Hetzner, city: Falkenstein
   ThreatFox     ok       Known IOC    threat_type: botnet_cc, malware: Cobalt Strike
+
+# Full security header audit with A-F grading (zero external deps)
+$ opensec vuln header-audit --url https://example.com
+
+# Fuzz parameters with built-in XSS/SQLi/traversal payloads
+$ opensec pentest fuzz --url "https://target.com/search?q=test" --payloads xss
+
+# Scan MCP server tools for prompt injection & rug-pull risks
+$ opensec agent-security mcp-audit ./mcp-config.json
+
+# CVE lookup -- no API key needed
+$ opensec nvd cve-get CVE-2024-3094
+┌───────────────┬────────────┬──────────┬──────────┬─────────────────────┬──────────────────────────────────────┐
+│ cve_id        │ cvss_score │ severity │ status   │ published           │ description                          │
+├───────────────┼────────────┼──────────┼──────────┼─────────────────────┼──────────────────────────────────────┤
+│ CVE-2024-3094 │ 10         │ CRITICAL │ Modified │ 2024-03-29T17:15:21 │ Malicious code was discovered in ... │
+└───────────────┴────────────┴──────────┴──────────┴─────────────────────┴──────────────────────────────────────┘
 ```
 
-Only queries sources you have API keys for. ThreatFox is always free.
+## Why OpenSecCLI?
 
-## Built-in Commands
+| | Without OpenSecCLI | With OpenSecCLI |
+|---|---|---|
+| **Threat Intel** | 5 different APIs, 5 different auth flows, 5 output formats | `opensec enrichment ip-enrich <ip>` |
+| **Vuln Scanning** | Install nuclei + nikto + testssl + custom scripts | `opensec vuln nuclei-scan <target>` |
+| **Agent Security** | No standard tooling exists | `opensec agent-security mcp-audit <path>` |
+| **Output** | Parse each tool differently | `--format json\|csv\|yaml\|table\|markdown` everywhere |
+| **Automation** | Glue scripts between tools | Pipe stdin/stdout, JSON errors, exit 0 for empty results |
 
-### No API Key Required
+## Install
 
-| Provider | Command | Description |
-|----------|---------|-------------|
-| abuse.ch | `opensec abuse.ch urlhaus-query --url <url>` | URLhaus malicious URL check |
-| abuse.ch | `opensec abuse.ch malwarebazaar-query --hash <hash>` | MalwareBazaar malware sample lookup |
-| abuse.ch | `opensec abuse.ch threatfox-search --ioc <ioc>` | ThreatFox IOC search |
-| abuse.ch | `opensec abuse.ch feodo-list` | Feodo Tracker botnet C&C list |
-| abuse.ch | `opensec abuse.ch sslbl-search --hash <sha1>` | SSLBL malicious SSL cert search |
-| NVD | `opensec nvd cve-get <cve-id>` | CVE details |
-| NVD | `opensec nvd cve-search --keyword <term>` | CVE keyword search |
-| crt.sh | `opensec crtsh cert-search --domain <domain>` | Certificate transparency search |
+### npm (recommended)
 
-### API Key Required (free tier)
+```bash
+npm install -g openseccli
+opensec --help
+```
 
-| Provider | Command | Free Tier |
-|----------|---------|-----------|
-| AbuseIPDB | `opensec abuseipdb ip-check <ip>` | 1,000/day |
-| VirusTotal | `opensec virustotal hash-lookup <hash>` | 500/day |
-| VirusTotal | `opensec virustotal ip-lookup <ip>` | 500/day |
-| VirusTotal | `opensec virustotal domain-lookup <domain>` | 500/day |
-| GreyNoise | `opensec greynoise ip-check <ip>` | 50/day |
-| ipinfo | `opensec ipinfo ip-lookup <ip>` | 50K/month |
-| Shodan | `opensec shodan host-lookup <ip>` | Limited |
+### Docker
 
-### Multi-Source Enrichment
+```bash
+# Lite (~200 MB) -- pure-TS adapters, no external tools needed
+docker build -t opensec .
+docker run -it opensec vuln header-audit --url https://example.com
+
+# Full (~3 GB) -- includes nuclei, subfinder, semgrep, trivy, and 40+ tools
+docker build -t opensec-full --target full .
+docker run -it opensec-full vuln nuclei-scan https://target.com
+```
+
+### From Source
+
+```bash
+git clone https://github.com/user/OpenSecCLI.git
+cd OpenSecCLI
+npm install
+npm run build
+node dist/main.js --help
+```
+
+## Commands at a Glance
+
+**84 commands** organized across 11 security domains. 10 commands run with **zero external dependencies** (pure TypeScript).
+
+<details>
+<summary><strong>Threat Intelligence</strong> -- 8 commands (no API key needed)</summary>
+
+| Command | Description |
+|---------|-------------|
+| `opensec abuse.ch urlhaus-query --url <url>` | URLhaus malicious URL check |
+| `opensec abuse.ch malwarebazaar-query --hash <hash>` | MalwareBazaar malware sample lookup |
+| `opensec abuse.ch threatfox-search --ioc <ioc>` | ThreatFox IOC search |
+| `opensec abuse.ch feodo-list` | Feodo Tracker botnet C&C list |
+| `opensec abuse.ch sslbl-search --hash <sha1>` | SSLBL malicious SSL cert search |
+| `opensec nvd cve-get <cve-id>` | CVE details |
+| `opensec nvd cve-search --keyword <term>` | CVE keyword search |
+| `opensec crtsh cert-search --domain <domain>` | Certificate transparency search |
+
+</details>
+
+<details>
+<summary><strong>Threat Intelligence</strong> -- 6 commands (free-tier API key)</summary>
+
+| Command | Free Tier |
+|---------|-----------|
+| `opensec abuseipdb ip-check <ip>` | 1,000/day |
+| `opensec virustotal hash-lookup <hash>` | 500/day |
+| `opensec virustotal ip-lookup <ip>` | 500/day |
+| `opensec virustotal domain-lookup <domain>` | 500/day |
+| `opensec greynoise ip-check <ip>` | 50/day |
+| `opensec ipinfo ip-lookup <ip>` | 50K/month |
+| `opensec shodan host-lookup <ip>` | Limited |
+
+</details>
+
+<details>
+<summary><strong>Multi-Source Enrichment</strong> -- 4 commands</summary>
 
 | Command | Sources |
 |---------|---------|
 | `opensec enrichment ip-enrich <ip>` | AbuseIPDB + VirusTotal + GreyNoise + ipinfo + ThreatFox |
+| `opensec enrichment domain-enrich <domain>` | Multi-source domain intelligence |
+| `opensec enrichment hash-enrich <hash>` | Multi-source hash reputation |
+| `opensec enrichment url-enrich <url>` | Multi-source URL analysis |
 
-### Recon
+</details>
 
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec recon subdomain-enum <domain>` | subfinder / amass | Subdomain enumeration |
-| `opensec recon tech-fingerprint <target>` | httpx / whatweb | Technology fingerprinting |
-| `opensec recon port-scan <target>` | nmap / masscan | Port scanning |
-| `opensec recon content-discover <url>` | ffuf / dirsearch | Content / directory discovery |
+<details>
+<summary><strong>Recon</strong> -- 10 commands</summary>
 
-### Vulnerability Scanning
+| Command | Backend |
+|---------|---------|
+| `opensec recon subdomain-enum <domain>` | subfinder / amass |
+| `opensec recon tech-fingerprint <target>` | httpx / whatweb |
+| `opensec recon port-scan <target>` | nmap / masscan |
+| `opensec recon fast-scan <target>` | masscan |
+| `opensec recon content-discover <url>` | ffuf / dirsearch |
+| `opensec recon dns-resolve <domain>` | dnsx |
+| `opensec recon url-crawl <url>` | katana |
+| `opensec recon url-archive <domain>` | gau |
+| `opensec recon wayback-urls <domain>` | waybackurls |
+| `opensec recon web-spider <url>` | gospider |
+| `opensec recon param-discover <url>` | paramspider |
+| `opensec recon osint-harvest <domain>` | theHarvester |
 
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec vuln nuclei-scan <target>` | nuclei | Template-based vulnerability scan |
-| `opensec vuln nikto-scan <target>` | nikto | Web server scanner |
-| `opensec vuln header-audit <url>` | pure TS | Security header analysis (zero deps) |
-| `opensec vuln tls-check <host>` | testssl.sh | TLS/SSL configuration check |
-| `opensec vuln cors-check <url>` | pure TS | CORS misconfiguration check (zero deps) |
-| `opensec vuln api-discover <url>` | kiterunner / ffuf | API endpoint discovery |
+</details>
 
-### Secrets Detection
+<details>
+<summary><strong>Vulnerability Scanning</strong> -- 9 commands</summary>
 
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec secrets trufflehog-scan <target>` | trufflehog | Secrets scanning in repos/filesystems |
+| Command | Backend |
+|---------|---------|
+| `opensec vuln nuclei-scan <target>` | nuclei |
+| `opensec vuln nikto-scan <target>` | nikto |
+| `opensec vuln header-audit <url>` | **pure TS** -- CSP parsing, cookie analysis, A-F grading |
+| `opensec vuln tls-check <host>` | testssl.sh |
+| `opensec vuln cors-check <url>` | **pure TS** -- CORS misconfiguration detection |
+| `opensec vuln api-discover <url>` | kiterunner / ffuf |
+| `opensec vuln xss-scan <url>` | dalfox |
+| `opensec vuln crlf-scan <url>` | crlfuzz |
+| `opensec vuln graphql-audit <url>` | graphql introspection |
 
-### Supply Chain
+</details>
 
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy | Dependency vulnerability audit |
-| `opensec supply-chain ci-audit [path]` | pure TS | CI config security check (zero deps) |
-| `opensec supply-chain sbom [path]` | syft | Software bill of materials generation |
+<details>
+<summary><strong>Pentest Utilities</strong> -- 5 commands</summary>
 
-### Cloud Security
+| Command | Backend |
+|---------|---------|
+| `opensec pentest http-request <url>` | **pure TS** -- crafted HTTP requests |
+| `opensec pentest race-test <url>` | **pure TS** -- concurrent race condition tester |
+| `opensec pentest fuzz <url>` | **pure TS** -- parameter fuzzing with XSS/SQLi/traversal payloads |
+| `opensec pentest jwt-test <token>` | **pure TS** -- JWT vulnerability testing |
+| `opensec pentest sqli-scan <url>` | sqlmap |
+| `opensec pentest cmdi-scan <url>` | commix |
 
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec cloud iac-scan [path]` | checkov / terrascan | Infrastructure-as-code scanning |
-| `opensec cloud container-scan <image>` | trivy / grype | Container image vulnerability scan |
-| `opensec cloud kube-audit` | kube-bench | Kubernetes CIS benchmark audit |
+</details>
 
-### Forensics
-
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk | File metadata & content analysis |
-| `opensec forensics binary-check <binary>` | checksec | Binary security feature check |
-| `opensec forensics pcap-summary <pcap>` | tshark | PCAP traffic summary |
-| `opensec forensics apk-analyze <apk>` | aapt + strings | Android APK static analysis |
-
-### Crypto
-
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec crypto hash-id <hash>` | pure TS | Identify hash type + hashcat/john format (zero deps) |
-
-### Pentest Utilities
-
-| Command | Backend | Description |
-|---------|---------|-------------|
-| `opensec pentest http-request <url>` | pure TS | Crafted HTTP request sender (zero deps) |
-| `opensec pentest race-test <url>` | pure TS | Concurrent race condition tester (zero deps) |
-| `opensec pentest fuzz <url>` | pure TS | Parameter fuzzing with security payloads |
-
-### Agent Security
+<details>
+<summary><strong>SAST & Scan Pipeline</strong> -- 11 commands</summary>
 
 | Command | Description |
 |---------|-------------|
-| `opensec agent-security scan-skill <path>` | Scan Claude Code skills for prompt injection, data exfiltration, credential exposure |
-| `opensec agent-security mcp-audit <path>` | Audit MCP server tool descriptions for poisoning and rug-pull risks |
-| `opensec agent-security grade-results <file>` | Grade agent security test results (SAFE/UNSAFE/BLOCKED/INCONCLUSIVE) |
-| `opensec agent-security analyze-coverage <file>` | Analyze attack corpus coverage against OWASP ASI Top 10 and MITRE ATLAS |
-| `opensec agent-security defense-validation <file>` | Validate defense effectiveness with precision/recall/F1 scoring |
-| `opensec agent-security manage-kb` | Manage agent security knowledge base (attack patterns, detection rules) |
-| `opensec agent-security normalize-cases <file>` | Normalize raw security test sources into canonical attack case format |
-| `opensec agent-security generate-variants <file>` | Expand suite manifests into concrete mutated test cases |
-| `opensec agent-security write-report <file>` | Generate agent security assessment report from grading results |
+| `opensec scan full <path>` | Full pipeline: discover, analyze, report |
+| `opensec scan discover <path>` | Build security-focused project map |
+| `opensec scan analyze <path>` | Static analysis (semgrep, gitleaks) + custom rules |
+| `opensec scan report <path>` | Generate reports (JSON, SARIF, Markdown) |
+| `opensec scan entrypoints <path>` | Find HTTP routes, RPC handlers, entry points |
+| `opensec scan git-signals <path>` | Extract security-relevant commits |
+| `opensec scan context-builder <path>` | Build code context bundles for LLM analysis |
+| `opensec scan triage-memory` | False-positive tracking and skip logic |
+| `opensec scan benchmark <path>` | Scanner benchmarks (precision/recall/F1) |
+| `opensec scan gosec-scan <path>` | Go security scanner |
+| `opensec scan bandit-scan <path>` | Python security linter |
 
-### SAST & Scan Pipeline
+</details>
+
+<details>
+<summary><strong>Agent Security</strong> -- 9 commands</summary>
 
 | Command | Description |
 |---------|-------------|
-| `opensec scan full <path>` | Full security scan pipeline: discover, analyze, report |
-| `opensec scan discover <path>` | Build security-focused project map (languages, frameworks, entry points) |
-| `opensec scan analyze <path>` | Run static analysis (semgrep, gitleaks) with custom rules |
-| `opensec scan report <path>` | Generate scan reports (JSON, SARIF, Markdown) |
-| `opensec scan entrypoints <path>` | Find HTTP routes, RPC handlers, and other entry points |
-| `opensec scan git-signals <path>` | Extract security-relevant commits from git history |
-| `opensec scan context-builder <path>` | Build security-focused code context bundles for LLM analysis |
-| `opensec scan triage-memory` | Manage triage memory for false-positive tracking and skip logic |
-| `opensec scan benchmark <path>` | Run scanner benchmarks and measure detection quality (precision/recall/F1) |
+| `opensec agent-security scan-skill <path>` | Scan Claude Code skills for prompt injection & data exfil |
+| `opensec agent-security mcp-audit <path>` | Audit MCP server tools for poisoning & rug-pull risks |
+| `opensec agent-security grade-results <file>` | Grade results: SAFE / UNSAFE / BLOCKED / INCONCLUSIVE |
+| `opensec agent-security analyze-coverage <file>` | Coverage vs OWASP ASI Top 10 & MITRE ATLAS |
+| `opensec agent-security defense-validation <file>` | Precision / recall / F1 scoring |
+| `opensec agent-security manage-kb` | Manage attack pattern & detection rule knowledge base |
+| `opensec agent-security normalize-cases <file>` | Normalize raw test sources into canonical format |
+| `opensec agent-security generate-variants <file>` | Expand suite manifests into mutated test cases |
+| `opensec agent-security write-report <file>` | Generate assessment report from grading results |
 
-## Claude Code Skills
+</details>
 
-22 AI-powered investigation & pentest workflows, available as Claude Code slash commands:
+<details>
+<summary><strong>Supply Chain, Cloud, Secrets, Forensics, Crypto, DAST</strong></summary>
 
-| Skill | Description |
+**Supply Chain** (4 commands)
+
+| Command | Backend |
+|---------|---------|
+| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy |
+| `opensec supply-chain ci-audit [path]` | **pure TS** -- CI config security check |
+| `opensec supply-chain sbom [path]` | syft |
+| `opensec supply-chain snyk-scan [path]` | snyk |
+
+**Cloud Security** (6 commands)
+
+| Command | Backend |
+|---------|---------|
+| `opensec cloud iac-scan [path]` | checkov / terrascan |
+| `opensec cloud container-scan <image>` | trivy / grype |
+| `opensec cloud kube-audit` | kube-bench |
+| `opensec cloud dockerfile-lint <path>` | hadolint |
+| `opensec cloud kube-security` | kubesec |
+| `opensec cloud container-lint <image>` | dockle |
+| `opensec cloud cloud-posture` | prowler / scout suite |
+
+**Secrets** (1 command)
+
+| Command | Backend |
+|---------|---------|
+| `opensec secrets trufflehog-scan <target>` | trufflehog |
+
+**Forensics** (4 commands)
+
+| Command | Backend |
+|---------|---------|
+| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk |
+| `opensec forensics binary-check <binary>` | checksec |
+| `opensec forensics pcap-summary <pcap>` | tshark |
+| `opensec forensics apk-analyze <apk>` | aapt + strings |
+
+**Crypto** (1 command)
+
+| Command | Backend |
+|---------|---------|
+| `opensec crypto hash-id <hash>` | **pure TS** -- identify hash type + hashcat/john format |
+
+**DAST** (1 command)
+
+| Command | Backend |
+|---------|---------|
+| `opensec dast zap-scan <target>` | OWASP ZAP |
+
+</details>
+
+## Claude Code Skills (30)
+
+OpenSecCLI ships **30 AI-powered security workflows** as Claude Code slash commands. Each skill orchestrates multiple `opensec` commands into complete investigation or pentest workflows.
+
+<details>
+<summary><strong>Threat Intelligence & Incident Response</strong> (5 skills)</summary>
+
+| Skill | What it does |
 |-------|-------------|
-| `ioc-investigate` | Deep-dive IOC analysis across multiple threat intel sources |
-| `code-security-audit` | Automated source code security review |
-| `incident-response` | Guided incident response triage and evidence collection |
-| `cve-impact-check` | Assess CVE impact on your infrastructure |
-| `attack-surface-map` | Map external attack surface for a domain/org |
-| `domain-recon` | Full domain reconnaissance and intelligence gathering |
-| `web-pentest` | Web application penetration testing workflow |
-| `api-pentest` | API security testing workflow |
-| `network-pentest` | Network penetration testing workflow |
-| `supply-chain-audit` | Supply chain security audit |
-| `cloud-audit` | Cloud security posture assessment |
-| `whitebox-code-review` | White-box code security review |
-| `business-logic-test` | Business logic vulnerability testing |
-| `exploit-validation` | Exploit validation and proof-of-concept |
-| `semantic-hunter` | Semantic vulnerability hunting |
-| `security-triage` | Security finding triage and prioritization |
-| `missed-patch-hunter` | Find missed patches and incomplete fixes |
-| `detect-semantic-attack` | Detect semantic attacks in code |
-| `agent-security-suite` | Agent/LLM security testing suite |
-| `agent-attack-research` | Agent attack research and analysis |
-| `ctf-toolkit` | CTF challenge solving toolkit |
-| `ai-llm-pentest` | AI/LLM application penetration testing |
+| `/ioc-investigate` | Deep-dive IOC analysis across multiple threat intel sources |
+| `/incident-response` | Guided triage, evidence collection, containment steps |
+| `/cve-impact-check` | Assess CVE impact on your specific infrastructure |
+| `/threat-hunting` | Proactive threat hunting across logs and telemetry |
+| `/osint-deep-dive` | Open-source intelligence deep investigation |
 
-## Output Formats
+</details>
+
+<details>
+<summary><strong>Penetration Testing</strong> (6 skills)</summary>
+
+| Skill | What it does |
+|-------|-------------|
+| `/web-pentest` | Full web application pentest workflow |
+| `/api-pentest` | API security testing: auth, IDOR, injection, rate limiting |
+| `/network-pentest` | Network pentest: scanning, enumeration, exploitation |
+| `/ai-llm-pentest` | AI/LLM application pentest: prompt injection, jailbreak, data leak |
+| `/bug-bounty-workflow` | End-to-end bug bounty hunting workflow |
+| `/red-team-recon` | Red team reconnaissance and initial access |
+
+</details>
+
+<details>
+<summary><strong>Code & Application Security</strong> (6 skills)</summary>
+
+| Skill | What it does |
+|-------|-------------|
+| `/code-security-audit` | Automated source code security review |
+| `/whitebox-code-review` | White-box code review with taint analysis |
+| `/semantic-hunter` | Semantic vulnerability hunting beyond pattern matching |
+| `/detect-semantic-attack` | Detect semantic attacks: backdoors, logic bombs |
+| `/business-logic-test` | Business logic flaw testing |
+| `/missed-patch-hunter` | Find incomplete fixes and missed patches |
+
+</details>
+
+<details>
+<summary><strong>Infrastructure & Supply Chain</strong> (5 skills)</summary>
+
+| Skill | What it does |
+|-------|-------------|
+| `/supply-chain-audit` | Full supply chain security audit |
+| `/cloud-audit` | Cloud security posture assessment |
+| `/container-security` | Container and image security assessment |
+| `/devsecops-pipeline` | DevSecOps pipeline security review |
+| `/compliance-check` | Compliance verification (SOC2, PCI-DSS, HIPAA) |
+
+</details>
+
+<details>
+<summary><strong>Agent Security & Research</strong> (4 skills)</summary>
+
+| Skill | What it does |
+|-------|-------------|
+| `/agent-security-suite` | Full agent/LLM security test suite |
+| `/agent-attack-research` | Agent attack research and novel technique discovery |
+| `/dast-assessment` | Dynamic application security testing workflow |
+| `/ctf-toolkit` | CTF challenge solving toolkit |
+
+</details>
+
+<details>
+<summary><strong>Triage & Recon</strong> (4 skills)</summary>
+
+| Skill | What it does |
+|-------|-------------|
+| `/attack-surface-map` | Map external attack surface for a domain/org |
+| `/domain-recon` | Full domain reconnaissance and intelligence |
+| `/security-triage` | Security finding triage and prioritization |
+| `/exploit-validation` | Exploit validation and PoC development |
+
+</details>
+
+## Agent-Friendly Design
+
+OpenSecCLI is built to be consumed by AI agents and automation pipelines:
 
 ```bash
-opensec nvd cve-get CVE-2024-3094                 # table (default)
-opensec nvd cve-get CVE-2024-3094 --format json    # JSON
-opensec nvd cve-get CVE-2024-3094 --format csv     # CSV
-opensec nvd cve-get CVE-2024-3094 --format yaml    # YAML
-opensec nvd cve-get CVE-2024-3094 --json            # shorthand
-```
+# Structured JSON output on stdout, status messages on stderr
+opensec nvd cve-search --keyword log4j --json 2>/dev/null | jq '.[0]'
 
-Data goes to stdout, status to stderr. Piping always works:
+# Empty results return exit 0 with empty array (not an error)
+opensec abuse.ch threatfox-search --ioc "clean-domain.com" --json
+# → []
 
-```bash
-opensec nvd cve-search --keyword log4j --json | jq '.[].cve_id'
-opensec abuse.ch feodo-list --format csv > botnet_c2.csv
-echo "CVE-2024-3094" | opensec nvd cve-get --json
-```
-
-## Pipe with ProjectDiscovery
-
-Follows the `-json` / `-silent` / stdin conventions:
-
-```bash
+# Pipe from stdin -- compatible with ProjectDiscovery ecosystem
 subfinder -d target.com -silent | opensec enrichment domain-enrich --json
 cat ips.txt | opensec abuseipdb ip-check --json | jq 'select(.abuse_score > 80)'
-cat hashes.txt | opensec virustotal hash-lookup --json
+echo "CVE-2024-3094" | opensec nvd cve-get --json
+
+# 5 output formats
+opensec nvd cve-get CVE-2024-3094 --format json
+opensec nvd cve-get CVE-2024-3094 --format csv
+opensec nvd cve-get CVE-2024-3094 --format yaml
+opensec nvd cve-get CVE-2024-3094 --format markdown
+opensec nvd cve-get CVE-2024-3094                      # table (default)
 ```
 
 ## Authentication
@@ -260,7 +403,7 @@ opensec auth test virustotal               # verify connectivity
 opensec auth remove virustotal             # remove credentials
 ```
 
-Credentials stored in `~/.openseccli/auth/` with 600 permissions. Environment variable override: `OPENSECCLI_VIRUSTOTAL_API_KEY`.
+Credentials stored in `~/.openseccli/auth/` with `0600` permissions. Override with environment variables: `OPENSECCLI_VIRUSTOTAL_API_KEY`.
 
 ## Contributing
 
@@ -295,33 +438,31 @@ pipeline:
 columns: [uuid, result_url]
 ```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
+For more complex integrations, write a TypeScript adapter. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-### APIs waiting for adapters
+**Plugin system:** Third-party adapters can be installed to `~/.openseccli/plugins/` via `opensec plugin install github:user/repo`.
 
-urlscan.io, Censys, SecurityTrails, Pulsedive, PhishTank, Hybrid Analysis, AlienVault OTX, EmailRep.io, IBM X-Force, Hunter.io, CIRCL hashlookup, MaxMind GeoLite2, Tor Exit Node List — [see Issues](../../issues).
+### APIs Waiting for Adapters
 
-## Detection Upgrades
-
-Recent additions to the vuln/scan engine:
-
-- **CSP parser** — full Content-Security-Policy directive analysis in `header-audit`
-- **Cookie analyzer** — SameSite, Secure, HttpOnly, Prefix validation
-- **Payload library** — built-in fuzzing payloads for XSS, SQLi, path traversal
-- **Custom semgrep rules** — project-specific SAST rules shipped in `scan/rules/`
+urlscan.io, Censys, SecurityTrails, Pulsedive, PhishTank, Hybrid Analysis, AlienVault OTX, EmailRep.io, IBM X-Force, Hunter.io, CIRCL hashlookup, MaxMind GeoLite2, Tor Exit Node List -- [see Issues](../../issues).
 
 ## Architecture
 
-Built on [OpenCLI](https://github.com/jackwener/opencli) patterns:
+```
+Commander.js CLI
+    |
+    +-- YAML adapters (15) -----> pipeline engine: request -> select -> map -> filter -> sort -> limit -> enrich
+    +-- TypeScript adapters (69) -> direct implementation, full control
+    |
+    +-- Singleton registry (globalThis)
+    +-- Manifest compilation (YAML -> JSON at build time)
+    +-- Plugin system (~/.openseccli/plugins/, lifecycle hooks)
+    +-- Output formatter (table | json | csv | yaml | markdown)
+```
 
-- **YAML + TypeScript** dual-track adapters
-- **Pipeline engine** — `request → select → map → filter → sort → limit → enrich`
-- **Singleton registry** via `globalThis`
-- **Manifest compilation** — YAML compiled to JSON at build time
-- **Plugin system** — `opensec plugin install github:user/repo`
-- **Lifecycle hooks** — `onStartup`, `onBeforeExecute`, `onAfterExecute`
+Dual adapter system: **YAML** for simple API wrappers (one file, no code), **TypeScript** for complex logic (parsers, multi-step workflows, pure-TS scanners). Both register identically into the command tree.
 
-See [BLUEPRINT.md](./BLUEPRINT.md) for architecture details.
+See [BLUEPRINT.md](./BLUEPRINT.md) for full architecture details.
 
 ## License
 

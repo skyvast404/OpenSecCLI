@@ -1,61 +1,37 @@
-# OpenSecCLI
+<p align="center">
+  <strong>一个 CLI，覆盖你的整个安全工作流。</strong>
+</p>
 
-> 一个 YAML 文件，把任何安全 API 变成 CLI 命令。
+<p align="center">
+  <a href="https://www.npmjs.com/package/openseccli"><img src="https://img.shields.io/npm/v/openseccli?style=flat-square&color=cb3837" alt="npm"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/node/v/openseccli?style=flat-square&color=339933" alt="node"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/user/OpenSecCLI?style=flat-square" alt="license"></a>
+  <img src="https://img.shields.io/badge/tests-337%20passed-brightgreen?style=flat-square" alt="tests">
+  <img src="https://img.shields.io/badge/commands-84-blue?style=flat-square" alt="commands">
+  <img src="https://img.shields.io/badge/claude%20code%20skills-30-blueviolet?style=flat-square" alt="skills">
+</p>
 
-[English](./README.md) | 中文文档
+<p align="center">
+  <a href="./README.md">English</a> | 中文文档
+</p>
 
-[![npm version](https://img.shields.io/npm/v/openseccli?style=flat-square)](https://www.npmjs.com/package/openseccli)
-[![Node.js](https://img.shields.io/node/v/openseccli?style=flat-square)](https://nodejs.org)
-[![License](https://img.shields.io/github/license/user/OpenSecCLI?style=flat-square)](./LICENSE)
+---
+
+## OpenSecCLI 是什么？
+
+OpenSecCLI 将 **84 条安全命令**、**20 个数据源**、**11 个安全领域** 统一到一个 CLI 里。威胁情报查询、漏洞扫描、渗透测试、云安全审计、Agent 安全评估 -- 全部使用统一的 JSON 输出和管道友好设计。
+
+为**安全工程师**打造：一个工具替代二十个。为 **AI Agent** 打造：结构化输出、可预测的错误处理。
 
 ```bash
 npm install -g openseccli
 ```
 
-```bash
-$ opensec nvd cve-get CVE-2024-3094
-┌───────────────┬────────────┬──────────┬──────────┬─────────────────────┬──────────────────────────────────────┐
-│ cve_id        │ cvss_score │ severity │ status   │ published           │ description                          │
-├───────────────┼────────────┼──────────┼──────────┼─────────────────────┼──────────────────────────────────────┤
-│ CVE-2024-3094 │ 10         │ CRITICAL │ Modified │ 2024-03-29T17:15:21 │ Malicious code was discovered in ... │
-└───────────────┴────────────┴──────────┴──────────┴─────────────────────┴──────────────────────────────────────┘
-1 item · 1.0s · from nvd
-```
-
-## 亮点
-
-- **62 条命令**，覆盖 19 个提供商 —— 侦查、漏洞扫描、密钥检测、供应链、云安全、取证、Agent 安全、SAST 等全覆盖
-- **6 个纯 TypeScript 适配器**，零外部依赖（header-audit、cors-check、hash-id、http-request、race-test、ci-audit）
-- **22 个 Claude Code Skills** —— AI 驱动的调查与渗透工作流（IOC 调查、代码审计、应急响应、Web/API/网络渗透、Agent 安全等）
-- **多源聚合查询** —— 并行查 5 个威胁情报 API，输出共识判定
-- **一个 YAML = 一条命令** —— 贡献者不需要写 TypeScript
-- **原生管道** —— stdin/stdout、`--json`、`--silent`，兼容 ProjectDiscovery 生态
-- **5 种输出格式** —— table、JSON、CSV、YAML、Markdown
-- **架构源自 [OpenCLI](https://github.com/jackwener/opencli)** —— 相同架构，安全聚焦
-
-## 快速开始
+## 快速上手
 
 ```bash
-# 无需 API Key —— 装完即用
-opensec nvd cve-search --keyword log4j --limit 5
-opensec abuse.ch threatfox-search --ioc 185.220.101.34
-opensec crtsh cert-search --domain example.com
-opensec abuse.ch feodo-list --limit 10
-
-# 添加 API Key 解锁更多数据源
-opensec auth add virustotal --api-key
-opensec auth add abuseipdb --api-key
-
-# 多源 IP 情报聚合（杀手功能）
-opensec enrichment ip-enrich 185.220.101.34
-```
-
-## 多源聚合
-
-一条命令。五个数据源。并行查询。共识判定。
-
-```bash
-$ opensec enrichment ip-enrich 185.220.101.34
+# 多源威胁情报 -- 并行查询 5 个 API，返回共识判定
+$ opensec enrichment ip-enrich 203.0.113.5
 
   Source        Status   Verdict      Detail
   AbuseIPDB     ok       Malicious    abuse_score: 100, country: DE, total_reports: 847
@@ -63,191 +39,358 @@ $ opensec enrichment ip-enrich 185.220.101.34
   GreyNoise     ok       Malicious    classification: malicious, noise: true
   ipinfo        ok       -            country: DE, org: Hetzner, city: Falkenstein
   ThreatFox     ok       Known IOC    threat_type: botnet_cc, malware: Cobalt Strike
+
+# 安全响应头审计，A-F 评级（零外部依赖）
+$ opensec vuln header-audit --url https://example.com
+
+# 内置 XSS/SQLi/路径穿越 Payload 的参数模糊测试
+$ opensec pentest fuzz --url "https://target.com/search?q=test" --payloads xss
+
+# 扫描 MCP 服务器工具描述中的提示注入与 rug-pull 风险
+$ opensec agent-security mcp-audit ./mcp-config.json
+
+# CVE 查询 -- 无需 API Key
+$ opensec nvd cve-get CVE-2024-3094
+┌───────────────┬────────────┬──────────┬──────────┬─────────────────────┬──────────────────────────────────────┐
+│ cve_id        │ cvss_score │ severity │ status   │ published           │ description                          │
+├───────────────┼────────────┼──────────┼──────────┼─────────────────────┼──────────────────────────────────────┤
+│ CVE-2024-3094 │ 10         │ CRITICAL │ Modified │ 2024-03-29T17:15:21 │ Malicious code was discovered in ... │
+└───────────────┴────────────┴──────────┴──────────┴─────────────────────┴──────────────────────────────────────┘
 ```
 
-只查询你已配置 Key 的数据源。ThreatFox 永久免费。
+## 为什么选 OpenSecCLI？
 
-## 内置命令
+| | 没有 OpenSecCLI | 有 OpenSecCLI |
+|---|---|---|
+| **威胁情报** | 5 个 API，5 套认证，5 种输出格式 | `opensec enrichment ip-enrich <ip>` |
+| **漏洞扫描** | 分别安装 nuclei + nikto + testssl + 自定义脚本 | `opensec vuln nuclei-scan <target>` |
+| **Agent 安全** | 没有标准工具 | `opensec agent-security mcp-audit <path>` |
+| **输出格式** | 每个工具的输出都不一样 | 统一 `--format json\|csv\|yaml\|table\|markdown` |
+| **自动化** | 需要胶水脚本串联各工具 | stdin/stdout 管道、JSON 错误、空结果返回 exit 0 |
 
-### 无需 API Key
+## 安装
 
-| 提供商 | 命令 | 说明 |
-|--------|------|------|
-| abuse.ch | `opensec abuse.ch urlhaus-query --url <url>` | URLhaus 恶意 URL 检查 |
-| abuse.ch | `opensec abuse.ch malwarebazaar-query --hash <hash>` | MalwareBazaar 恶意样本查询 |
-| abuse.ch | `opensec abuse.ch threatfox-search --ioc <ioc>` | ThreatFox IOC 搜索 |
-| abuse.ch | `opensec abuse.ch feodo-list` | Feodo Tracker 僵尸网络 C&C 列表 |
-| abuse.ch | `opensec abuse.ch sslbl-search --hash <sha1>` | SSLBL 恶意 SSL 证书搜索 |
-| NVD | `opensec nvd cve-get <cve-id>` | CVE 详情查询 |
-| NVD | `opensec nvd cve-search --keyword <term>` | CVE 关键词搜索 |
-| crt.sh | `opensec crtsh cert-search --domain <domain>` | 证书透明度搜索 |
+### npm（推荐）
 
-### 需要 API Key（免费额度）
+```bash
+npm install -g openseccli
+opensec --help
+```
 
-| 提供商 | 命令 | 免费额度 |
-|--------|------|---------|
-| AbuseIPDB | `opensec abuseipdb ip-check <ip>` | 1,000 次/天 |
-| VirusTotal | `opensec virustotal hash-lookup <hash>` | 500 次/天 |
-| VirusTotal | `opensec virustotal ip-lookup <ip>` | 500 次/天 |
-| VirusTotal | `opensec virustotal domain-lookup <domain>` | 500 次/天 |
-| GreyNoise | `opensec greynoise ip-check <ip>` | 50 次/天 |
-| ipinfo | `opensec ipinfo ip-lookup <ip>` | 50K 次/月 |
-| Shodan | `opensec shodan host-lookup <ip>` | 有限免费 |
+### Docker
 
-### 多源聚合
+```bash
+# Lite（~200 MB）-- 纯 TS 适配器，无需外部工具
+docker build -t opensec .
+docker run -it opensec vuln header-audit --url https://example.com
+
+# Full（~3 GB）-- 包含 nuclei、subfinder、semgrep、trivy 等 40+ 工具
+docker build -t opensec-full --target full .
+docker run -it opensec-full vuln nuclei-scan https://target.com
+```
+
+### 从源码构建
+
+```bash
+git clone https://github.com/user/OpenSecCLI.git
+cd OpenSecCLI
+npm install
+npm run build
+node dist/main.js --help
+```
+
+## 命令速览
+
+**84 条命令**，覆盖 11 个安全领域。其中 10 条命令以**纯 TypeScript** 实现，零外部依赖。
+
+<details>
+<summary><strong>威胁情报</strong> -- 8 条命令（无需 API Key）</summary>
+
+| 命令 | 说明 |
+|------|------|
+| `opensec abuse.ch urlhaus-query --url <url>` | URLhaus 恶意 URL 检查 |
+| `opensec abuse.ch malwarebazaar-query --hash <hash>` | MalwareBazaar 恶意样本查询 |
+| `opensec abuse.ch threatfox-search --ioc <ioc>` | ThreatFox IOC 搜索 |
+| `opensec abuse.ch feodo-list` | Feodo Tracker 僵尸网络 C&C 列表 |
+| `opensec abuse.ch sslbl-search --hash <sha1>` | SSLBL 恶意 SSL 证书搜索 |
+| `opensec nvd cve-get <cve-id>` | CVE 详情 |
+| `opensec nvd cve-search --keyword <term>` | CVE 关键词搜索 |
+| `opensec crtsh cert-search --domain <domain>` | 证书透明度搜索 |
+
+</details>
+
+<details>
+<summary><strong>威胁情报</strong> -- 7 条命令（免费 API Key）</summary>
+
+| 命令 | 免费额度 |
+|------|---------|
+| `opensec abuseipdb ip-check <ip>` | 1,000 次/天 |
+| `opensec virustotal hash-lookup <hash>` | 500 次/天 |
+| `opensec virustotal ip-lookup <ip>` | 500 次/天 |
+| `opensec virustotal domain-lookup <domain>` | 500 次/天 |
+| `opensec greynoise ip-check <ip>` | 50 次/天 |
+| `opensec ipinfo ip-lookup <ip>` | 50K 次/月 |
+| `opensec shodan host-lookup <ip>` | 有限免费 |
+
+</details>
+
+<details>
+<summary><strong>多源聚合</strong> -- 4 条命令</summary>
 
 | 命令 | 聚合数据源 |
 |------|-----------|
 | `opensec enrichment ip-enrich <ip>` | AbuseIPDB + VirusTotal + GreyNoise + ipinfo + ThreatFox |
+| `opensec enrichment domain-enrich <domain>` | 多源域名情报 |
+| `opensec enrichment hash-enrich <hash>` | 多源哈希信誉查询 |
+| `opensec enrichment url-enrich <url>` | 多源 URL 分析 |
 
-### 侦查（Recon）
+</details>
 
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec recon subdomain-enum <domain>` | subfinder / amass | 子域名枚举 |
-| `opensec recon tech-fingerprint <target>` | httpx / whatweb | 技术指纹识别 |
-| `opensec recon port-scan <target>` | nmap / masscan | 端口扫描 |
-| `opensec recon content-discover <url>` | ffuf / dirsearch | 目录/内容发现 |
+<details>
+<summary><strong>侦查（Recon）</strong> -- 12 条命令</summary>
 
-### 漏洞扫描（Vuln）
+| 命令 | 后端 |
+|------|------|
+| `opensec recon subdomain-enum <domain>` | subfinder / amass |
+| `opensec recon tech-fingerprint <target>` | httpx / whatweb |
+| `opensec recon port-scan <target>` | nmap / masscan |
+| `opensec recon fast-scan <target>` | masscan |
+| `opensec recon content-discover <url>` | ffuf / dirsearch |
+| `opensec recon dns-resolve <domain>` | dnsx |
+| `opensec recon url-crawl <url>` | katana |
+| `opensec recon url-archive <domain>` | gau |
+| `opensec recon wayback-urls <domain>` | waybackurls |
+| `opensec recon web-spider <url>` | gospider |
+| `opensec recon param-discover <url>` | paramspider |
+| `opensec recon osint-harvest <domain>` | theHarvester |
 
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec vuln nuclei-scan <target>` | nuclei | 基于模板的漏洞扫描 |
-| `opensec vuln nikto-scan <target>` | nikto | Web 服务器扫描 |
-| `opensec vuln header-audit <url>` | 纯 TS | 安全响应头分析（零依赖） |
-| `opensec vuln tls-check <host>` | testssl.sh | TLS/SSL 配置检查 |
-| `opensec vuln cors-check <url>` | 纯 TS | CORS 配置错误检查（零依赖） |
-| `opensec vuln api-discover <url>` | kiterunner / ffuf | API 端点发现 |
+</details>
 
-### 密钥检测（Secrets）
+<details>
+<summary><strong>漏洞扫描（Vuln）</strong> -- 9 条命令</summary>
 
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec secrets trufflehog-scan <target>` | trufflehog | 仓库/文件系统密钥扫描 |
+| 命令 | 后端 |
+|------|------|
+| `opensec vuln nuclei-scan <target>` | nuclei |
+| `opensec vuln nikto-scan <target>` | nikto |
+| `opensec vuln header-audit <url>` | **纯 TS** -- CSP 解析、Cookie 分析、A-F 评级 |
+| `opensec vuln tls-check <host>` | testssl.sh |
+| `opensec vuln cors-check <url>` | **纯 TS** -- CORS 配置错误检测 |
+| `opensec vuln api-discover <url>` | kiterunner / ffuf |
+| `opensec vuln xss-scan <url>` | dalfox |
+| `opensec vuln crlf-scan <url>` | crlfuzz |
+| `opensec vuln graphql-audit <url>` | GraphQL 内省 |
 
-### 供应链（Supply Chain）
+</details>
 
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy | 依赖漏洞审计 |
-| `opensec supply-chain ci-audit [path]` | 纯 TS | CI 配置安全检查（零依赖） |
-| `opensec supply-chain sbom [path]` | syft | 软件物料清单生成 |
+<details>
+<summary><strong>渗透工具（Pentest）</strong> -- 6 条命令</summary>
 
-### 云安全（Cloud）
+| 命令 | 后端 |
+|------|------|
+| `opensec pentest http-request <url>` | **纯 TS** -- 构造 HTTP 请求 |
+| `opensec pentest race-test <url>` | **纯 TS** -- 并发竞态条件测试 |
+| `opensec pentest fuzz <url>` | **纯 TS** -- XSS/SQLi/路径穿越 Payload 模糊测试 |
+| `opensec pentest jwt-test <token>` | **纯 TS** -- JWT 漏洞测试 |
+| `opensec pentest sqli-scan <url>` | sqlmap |
+| `opensec pentest cmdi-scan <url>` | commix |
 
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec cloud iac-scan [path]` | checkov / terrascan | 基础设施即代码扫描 |
-| `opensec cloud container-scan <image>` | trivy / grype | 容器镜像漏洞扫描 |
-| `opensec cloud kube-audit` | kube-bench | Kubernetes CIS 基准审计 |
+</details>
 
-### 取证（Forensics）
-
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk | 文件元数据与内容分析 |
-| `opensec forensics binary-check <binary>` | checksec | 二进制安全特性检查 |
-| `opensec forensics pcap-summary <pcap>` | tshark | PCAP 流量摘要 |
-| `opensec forensics apk-analyze <apk>` | aapt + strings | Android APK 静态分析 |
-
-### 密码学（Crypto）
-
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec crypto hash-id <hash>` | 纯 TS | 识别哈希类型 + hashcat/john 格式（零依赖） |
-
-### 渗透工具（Pentest）
-
-| 命令 | 后端 | 说明 |
-|------|------|------|
-| `opensec pentest http-request <url>` | 纯 TS | 构造 HTTP 请求发送（零依赖） |
-| `opensec pentest race-test <url>` | 纯 TS | 并发竞态条件测试（零依赖） |
-| `opensec pentest fuzz <url>` | 纯 TS | 参数模糊测试（安全 Payload） |
-
-### Agent 安全（Agent Security）
+<details>
+<summary><strong>SAST 与扫描流水线</strong> -- 11 条命令</summary>
 
 | 命令 | 说明 |
 |------|------|
-| `opensec agent-security scan-skill <path>` | 扫描 Claude Code Skills 的提示注入、数据泄露、凭据暴露 |
-| `opensec agent-security mcp-audit <path>` | 审计 MCP 服务器工具描述的投毒与 rug-pull 风险 |
-| `opensec agent-security grade-results <file>` | 评分 Agent 安全测试结果（SAFE/UNSAFE/BLOCKED/INCONCLUSIVE） |
-| `opensec agent-security analyze-coverage <file>` | 分析攻击语料库对 OWASP ASI Top 10 和 MITRE ATLAS 的覆盖率 |
-| `opensec agent-security defense-validation <file>` | 验证防御有效性（precision/recall/F1 评分） |
-| `opensec agent-security manage-kb` | 管理 Agent 安全知识库（攻击模式、检测规则） |
-| `opensec agent-security normalize-cases <file>` | 将原始测试源规范化为标准攻击用例格式 |
-| `opensec agent-security generate-variants <file>` | 将套件清单展开为具体的变异测试用例 |
-| `opensec agent-security write-report <file>` | 从评分结果生成 Agent 安全评估报告 |
+| `opensec scan full <path>` | 完整流水线：发现、分析、报告 |
+| `opensec scan discover <path>` | 构建安全项目地图 |
+| `opensec scan analyze <path>` | 静态分析（semgrep、gitleaks）+ 自定义规则 |
+| `opensec scan report <path>` | 生成报告（JSON、SARIF、Markdown） |
+| `opensec scan entrypoints <path>` | 查找 HTTP 路由、RPC Handler |
+| `opensec scan git-signals <path>` | 提取安全相关 Git 提交 |
+| `opensec scan context-builder <path>` | 构建面向 LLM 的代码上下文包 |
+| `opensec scan triage-memory` | 假阳性跟踪与跳过逻辑 |
+| `opensec scan benchmark <path>` | 扫描器基准测试（precision/recall/F1） |
+| `opensec scan gosec-scan <path>` | Go 安全扫描 |
+| `opensec scan bandit-scan <path>` | Python 安全检查 |
 
-### 静态分析与扫描流水线（SAST & Scan）
+</details>
+
+<details>
+<summary><strong>Agent 安全</strong> -- 9 条命令</summary>
 
 | 命令 | 说明 |
 |------|------|
-| `opensec scan full <path>` | 完整安全扫描流水线：发现、分析、报告 |
-| `opensec scan discover <path>` | 构建安全项目地图（语言、框架、入口点） |
-| `opensec scan analyze <path>` | 运行静态分析（semgrep、gitleaks）及自定义规则 |
-| `opensec scan report <path>` | 生成扫描报告（JSON、SARIF、Markdown） |
-| `opensec scan entrypoints <path>` | 查找 HTTP 路由、RPC Handler 等入口点 |
-| `opensec scan git-signals <path>` | 从 Git 历史中提取安全相关提交 |
-| `opensec scan context-builder <path>` | 构建面向 LLM 分析的安全代码上下文包 |
-| `opensec scan triage-memory` | 管理分类记忆：假阳性跟踪与跳过逻辑 |
-| `opensec scan benchmark <path>` | 运行扫描器基准测试，度量检测质量（precision/recall/F1） |
+| `opensec agent-security scan-skill <path>` | 扫描 Claude Code Skills 的提示注入与数据泄露 |
+| `opensec agent-security mcp-audit <path>` | 审计 MCP 工具描述的投毒与 rug-pull 风险 |
+| `opensec agent-security grade-results <file>` | 评分：SAFE / UNSAFE / BLOCKED / INCONCLUSIVE |
+| `opensec agent-security analyze-coverage <file>` | 覆盖率 vs OWASP ASI Top 10 & MITRE ATLAS |
+| `opensec agent-security defense-validation <file>` | 防御有效性（precision/recall/F1） |
+| `opensec agent-security manage-kb` | 管理攻击模式与检测规则知识库 |
+| `opensec agent-security normalize-cases <file>` | 规范化测试源为标准攻击用例格式 |
+| `opensec agent-security generate-variants <file>` | 展开清单为变异测试用例 |
+| `opensec agent-security write-report <file>` | 从评分结果生成评估报告 |
 
-## Claude Code Skills
+</details>
 
-22 个 AI 驱动的调查与渗透工作流，可作为 Claude Code 斜杠命令使用：
+<details>
+<summary><strong>供应链、云安全、密钥检测、取证、密码学、DAST</strong></summary>
 
-| Skill | 说明 |
+**供应链**（4 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec supply-chain dep-audit [path]` | npm-audit + pip-audit + trivy |
+| `opensec supply-chain ci-audit [path]` | **纯 TS** -- CI 配置安全检查 |
+| `opensec supply-chain sbom [path]` | syft |
+| `opensec supply-chain snyk-scan [path]` | snyk |
+
+**云安全**（7 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec cloud iac-scan [path]` | checkov / terrascan |
+| `opensec cloud container-scan <image>` | trivy / grype |
+| `opensec cloud kube-audit` | kube-bench |
+| `opensec cloud dockerfile-lint <path>` | hadolint |
+| `opensec cloud kube-security` | kubesec |
+| `opensec cloud container-lint <image>` | dockle |
+| `opensec cloud cloud-posture` | prowler / scout suite |
+
+**密钥检测**（1 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec secrets trufflehog-scan <target>` | trufflehog |
+
+**取证**（4 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec forensics file-analyze <file>` | file + exiftool + strings + binwalk |
+| `opensec forensics binary-check <binary>` | checksec |
+| `opensec forensics pcap-summary <pcap>` | tshark |
+| `opensec forensics apk-analyze <apk>` | aapt + strings |
+
+**密码学**（1 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec crypto hash-id <hash>` | **纯 TS** -- 识别哈希类型 + hashcat/john 格式 |
+
+**DAST**（1 条命令）
+
+| 命令 | 后端 |
+|------|------|
+| `opensec dast zap-scan <target>` | OWASP ZAP |
+
+</details>
+
+## Claude Code Skills（30 个）
+
+OpenSecCLI 附带 **30 个 AI 驱动的安全工作流**，以 Claude Code 斜杠命令形式使用。每个 Skill 编排多条 `opensec` 命令，构成完整的调查或渗透流程。
+
+<details>
+<summary><strong>威胁情报与应急响应</strong>（5 个）</summary>
+
+| Skill | 用途 |
 |-------|------|
-| `ioc-investigate` | 跨多个威胁情报源的 IOC 深度分析 |
-| `code-security-audit` | 自动化源代码安全审计 |
-| `incident-response` | 引导式应急响应分类与证据收集 |
-| `cve-impact-check` | 评估 CVE 对基础设施的影响 |
-| `attack-surface-map` | 映射域名/组织的外部攻击面 |
-| `domain-recon` | 全面域名侦查与情报收集 |
-| `web-pentest` | Web 应用渗透测试工作流 |
-| `api-pentest` | API 安全测试工作流 |
-| `network-pentest` | 网络渗透测试工作流 |
-| `supply-chain-audit` | 供应链安全审计 |
-| `cloud-audit` | 云安全态势评估 |
-| `whitebox-code-review` | 白盒代码安全审查 |
-| `business-logic-test` | 业务逻辑漏洞测试 |
-| `exploit-validation` | 漏洞利用验证与 PoC |
-| `semantic-hunter` | 语义漏洞挖掘 |
-| `security-triage` | 安全发现分类与优先级排序 |
-| `missed-patch-hunter` | 查找遗漏补丁与不完整修复 |
-| `detect-semantic-attack` | 检测代码中的语义攻击 |
-| `agent-security-suite` | Agent/LLM 安全测试套件 |
-| `agent-attack-research` | Agent 攻击研究与分析 |
-| `ctf-toolkit` | CTF 竞赛解题工具包 |
-| `ai-llm-pentest` | AI/LLM 应用渗透测试 |
+| `/ioc-investigate` | 跨多个威胁情报源的 IOC 深度分析 |
+| `/incident-response` | 引导式应急响应：分类、取证、遏制 |
+| `/cve-impact-check` | 评估 CVE 对你的基础设施的影响 |
+| `/threat-hunting` | 主动威胁狩猎：日志与遥测分析 |
+| `/osint-deep-dive` | 开源情报深度调查 |
 
-## 输出格式
+</details>
+
+<details>
+<summary><strong>渗透测试</strong>（6 个）</summary>
+
+| Skill | 用途 |
+|-------|------|
+| `/web-pentest` | Web 应用渗透测试全流程 |
+| `/api-pentest` | API 安全测试：认证、IDOR、注入、限流 |
+| `/network-pentest` | 网络渗透：扫描、枚举、利用 |
+| `/ai-llm-pentest` | AI/LLM 应用渗透：提示注入、越狱、数据泄露 |
+| `/bug-bounty-workflow` | 端到端漏洞赏金工作流 |
+| `/red-team-recon` | 红队侦查与初始访问 |
+
+</details>
+
+<details>
+<summary><strong>代码与应用安全</strong>（6 个）</summary>
+
+| Skill | 用途 |
+|-------|------|
+| `/code-security-audit` | 自动化源代码安全审计 |
+| `/whitebox-code-review` | 白盒代码审查（污点分析） |
+| `/semantic-hunter` | 超越模式匹配的语义漏洞挖掘 |
+| `/detect-semantic-attack` | 检测语义攻击：后门、逻辑炸弹 |
+| `/business-logic-test` | 业务逻辑漏洞测试 |
+| `/missed-patch-hunter` | 查找不完整修复与遗漏补丁 |
+
+</details>
+
+<details>
+<summary><strong>基础设施与供应链</strong>（5 个）</summary>
+
+| Skill | 用途 |
+|-------|------|
+| `/supply-chain-audit` | 供应链安全审计 |
+| `/cloud-audit` | 云安全态势评估 |
+| `/container-security` | 容器与镜像安全评估 |
+| `/devsecops-pipeline` | DevSecOps 流水线安全审查 |
+| `/compliance-check` | 合规验证（SOC2、PCI-DSS、HIPAA） |
+
+</details>
+
+<details>
+<summary><strong>Agent 安全与研究</strong>（4 个）</summary>
+
+| Skill | 用途 |
+|-------|------|
+| `/agent-security-suite` | 完整的 Agent/LLM 安全测试套件 |
+| `/agent-attack-research` | Agent 攻击研究与新技术发现 |
+| `/dast-assessment` | 动态应用安全测试工作流 |
+| `/ctf-toolkit` | CTF 竞赛解题工具包 |
+
+</details>
+
+<details>
+<summary><strong>分类与侦查</strong>（4 个）</summary>
+
+| Skill | 用途 |
+|-------|------|
+| `/attack-surface-map` | 映射域名/组织的外部攻击面 |
+| `/domain-recon` | 全面域名侦查与情报收集 |
+| `/security-triage` | 安全发现的分类与优先级排序 |
+| `/exploit-validation` | 漏洞利用验证与 PoC 开发 |
+
+</details>
+
+## Agent 友好设计
+
+OpenSecCLI 天生适合 AI Agent 和自动化流水线：
 
 ```bash
-opensec nvd cve-get CVE-2024-3094                 # table（默认）
-opensec nvd cve-get CVE-2024-3094 --format json    # JSON
-opensec nvd cve-get CVE-2024-3094 --format csv     # CSV
-opensec nvd cve-get CVE-2024-3094 --format yaml    # YAML
-opensec nvd cve-get CVE-2024-3094 --json            # 简写
-```
+# 结构化 JSON 输出走 stdout，状态信息走 stderr
+opensec nvd cve-search --keyword log4j --json 2>/dev/null | jq '.[0]'
 
-数据走 stdout，状态走 stderr。管道始终可用：
+# 空结果返回 exit 0 + 空数组（不是错误）
+opensec abuse.ch threatfox-search --ioc "clean-domain.com" --json
+# → []
 
-```bash
-opensec nvd cve-search --keyword log4j --json | jq '.[].cve_id'
-opensec abuse.ch feodo-list --format csv > botnet_c2.csv
-echo "CVE-2024-3094" | opensec nvd cve-get --json
-```
-
-## 与 ProjectDiscovery 生态协作
-
-遵循 `-json` / `-silent` / stdin 约定：
-
-```bash
+# stdin 管道 -- 兼容 ProjectDiscovery 生态
 subfinder -d target.com -silent | opensec enrichment domain-enrich --json
 cat ips.txt | opensec abuseipdb ip-check --json | jq 'select(.abuse_score > 80)'
-cat hashes.txt | opensec virustotal hash-lookup --json
+echo "CVE-2024-3094" | opensec nvd cve-get --json
+
+# 5 种输出格式
+opensec nvd cve-get CVE-2024-3094 --format json
+opensec nvd cve-get CVE-2024-3094 --format csv
+opensec nvd cve-get CVE-2024-3094 --format yaml
+opensec nvd cve-get CVE-2024-3094 --format markdown
+opensec nvd cve-get CVE-2024-3094                      # table（默认）
 ```
 
 ## 认证管理
@@ -260,11 +403,11 @@ opensec auth test virustotal               # 验证连通性
 opensec auth remove virustotal             # 删除凭据
 ```
 
-凭据存储在 `~/.openseccli/auth/`，权限 600。环境变量覆盖：`OPENSECCLI_VIRUSTOTAL_API_KEY`。
+凭据存储在 `~/.openseccli/auth/`，权限 `0600`。支持环境变量覆盖：`OPENSECCLI_VIRUSTOTAL_API_KEY`。
 
 ## 贡献
 
-**添加一个新的安全 API 只需要一个 YAML 文件。** 不需要写 TypeScript。
+**添加一个新 API 只需一个 YAML 文件。** 不需要写 TypeScript。
 
 ```yaml
 # src/adapters/urlscan/scan.yaml
@@ -295,31 +438,29 @@ pipeline:
 columns: [uuid, result_url]
 ```
 
-完整指南见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+更复杂的集成可以写 TypeScript 适配器。详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+**插件系统：** 第三方适配器可通过 `opensec plugin install github:user/repo` 安装到 `~/.openseccli/plugins/`。
 
 ### 等待认领的 API
 
-urlscan.io、Censys、SecurityTrails、Pulsedive、PhishTank、Hybrid Analysis、AlienVault OTX、EmailRep.io、IBM X-Force、Hunter.io、CIRCL hashlookup、MaxMind GeoLite2、Tor Exit Node List — [查看 Issues](../../issues)。
-
-## 检测能力升级
-
-vuln/scan 引擎的近期增强：
-
-- **CSP 解析器** — 完整的 Content-Security-Policy 指令分析（`header-audit`）
-- **Cookie 分析器** — SameSite、Secure、HttpOnly、Prefix 验证
-- **Payload 库** — 内置 XSS、SQLi、路径穿越模糊测试 Payload
-- **自定义 semgrep 规则** — 项目专用 SAST 规则（`scan/rules/`）
+urlscan.io、Censys、SecurityTrails、Pulsedive、PhishTank、Hybrid Analysis、AlienVault OTX、EmailRep.io、IBM X-Force、Hunter.io、CIRCL hashlookup、MaxMind GeoLite2、Tor Exit Node List -- [查看 Issues](../../issues)。
 
 ## 架构
 
-基于 [OpenCLI](https://github.com/jackwener/opencli) 模式构建：
+```
+Commander.js CLI
+    |
+    +-- YAML 适配器 (15) --------> 流水线引擎: request -> select -> map -> filter -> sort -> limit -> enrich
+    +-- TypeScript 适配器 (69) --> 直接实现，完全控制
+    |
+    +-- 单例注册表 (globalThis)
+    +-- Manifest 编译 (YAML -> JSON, 构建时)
+    +-- 插件系统 (~/.openseccli/plugins/, 生命周期钩子)
+    +-- 输出格式化器 (table | json | csv | yaml | markdown)
+```
 
-- **YAML + TypeScript** 双轨适配器
-- **Pipeline 引擎** — `request → select → map → filter → sort → limit → enrich`
-- **单例注册表** — `globalThis` 模式
-- **Manifest 编译** — 构建时 YAML → JSON
-- **插件系统** — `opensec plugin install github:user/repo`
-- **生命周期钩子** — `onStartup`、`onBeforeExecute`、`onAfterExecute`
+双轨适配器系统：**YAML** 用于简单 API 封装（一个文件，无需编码），**TypeScript** 用于复杂逻辑（解析器、多步工作流、纯 TS 扫描器）。两者以相同方式注册到命令树中。
 
 架构详情见 [BLUEPRINT.md](./BLUEPRINT.md)。
 
