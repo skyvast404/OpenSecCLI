@@ -104,6 +104,14 @@ export async function executeCommand(
     // DB save is best-effort — don't break the command
   }
 
+  // 5c. Auto-record step to active session (best-effort)
+  try {
+    const { getActiveSession, recordStep } = await import('./session/recorder.js')
+    if (getActiveSession()) {
+      recordStep(commandId, args, Array.isArray(result) ? result.length : 0, elapsed)
+    }
+  } catch { /* best effort */ }
+
   // 6. Render output
   const renderOpts: RenderOptions = {
     format: (options.format ?? 'table') as RenderOptions['format'],

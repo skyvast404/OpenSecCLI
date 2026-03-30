@@ -18,6 +18,8 @@ import { runWorkflow } from './commands/workflow.js'
 import { generateReport } from './commands/report.js'
 import { registerDbCommands } from './commands/db.js'
 import { runTriage } from './commands/triage.js'
+import { registerSessionCommands } from './commands/session.js'
+import { registerComplianceCommands } from './commands/compliance.js'
 import { SECURITY_DOMAINS } from './constants/domains.js'
 import { checkToolInstalled, getToolVersion } from './adapters/_utils/tool-runner.js'
 import { existsSync } from 'node:fs'
@@ -373,6 +375,12 @@ export function createCli(version: string): Command {
     .option('-m, --model <model>', 'Claude model', 'claude-sonnet-4-20250514')
     .option('-n, --max-findings <n>', 'Max findings to triage', '10')
     .action(async (opts) => { await runTriage(opts) })
+
+  // Built-in: session (engagement session manager)
+  registerSessionCommands(program)
+
+  // Built-in: compliance (evidence collection and reporting)
+  registerComplianceCommands(program)
 
   return program
 }
