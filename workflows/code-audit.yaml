@@ -1,0 +1,21 @@
+name: code-audit
+description: Source code security audit
+variables:
+  project: "{{ target }}"
+steps:
+  - name: SAST Scan
+    command: scan/analyze
+    args: { path: "{{ project }}" }
+  - name: Dependency Audit
+    command: supply-chain/dep-audit
+    args: { path: "{{ project }}" }
+  - name: CI/CD Audit
+    command: supply-chain/ci-audit
+    args: { path: "{{ project }}" }
+  - name: Secret Scan
+    command: secrets/trufflehog-scan
+    args: { path: "{{ project }}" }
+    on_error: skip
+  - name: Project Discovery
+    command: scan/discover
+    args: { path: "{{ project }}" }

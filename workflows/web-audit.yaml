@@ -1,0 +1,19 @@
+name: web-audit
+description: Quick web security audit
+variables:
+  domain: "{{ target }}"
+  url: "https://{{ target }}"
+steps:
+  - name: Header Audit
+    command: vuln/header-audit
+    args: { url: "{{ url }}" }
+  - name: CORS Check
+    command: vuln/cors-check
+    args: { url: "{{ url }}" }
+  - name: Certificate Check
+    command: crtsh/cert-search
+    args: { domain: "{{ domain }}" }
+  - name: Tech Fingerprint
+    command: recon/tech-fingerprint
+    args: { target: "{{ url }}" }
+    on_error: skip
