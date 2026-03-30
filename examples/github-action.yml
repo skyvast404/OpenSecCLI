@@ -1,0 +1,44 @@
+# .github/workflows/security-scan.yml
+# Add this to your repo for automated security scanning
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install OpenSecCLI
+        run: npm install -g openseccli
+
+      - name: Run security scan
+        run: opensec autopilot --path . --depth standard -o security-report
+
+      - name: Generate HTML report
+        run: opensec report security-report/autopilot-report.json -o security-report.html
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: |
+            security-report/
+            security-report.html
+
+      - name: Check for critical findings
+        run: |
+          CRITICAL=$(cat security-report/autopilot-report.json | jq '.summary.critical // 0')
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "::error::Found $CRITICAL critical security findings"
+            exit 1
+          fi

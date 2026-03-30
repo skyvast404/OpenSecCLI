@@ -450,6 +450,50 @@ For more complex integrations, write a TypeScript adapter. See [CONTRIBUTING.md]
 
 urlscan.io, Censys, SecurityTrails, Pulsedive, PhishTank, Hybrid Analysis, AlienVault OTX, EmailRep.io, IBM X-Force, Hunter.io, CIRCL hashlookup, MaxMind GeoLite2, Tor Exit Node List -- [see Issues](../../issues).
 
+## Autopilot — One Command Does Everything
+
+```bash
+$ opensec autopilot https://target.com
+
+  ═══════════════════════════════════════════
+   OpenSecCLI Autopilot Report
+  ═══════════════════════════════════════════
+   Target: https://target.com
+   Grade:  C (54/100)
+   Findings: 43 total (2 Critical, 8 High)
+   Duration: 18.2s
+  ═══════════════════════════════════════════
+
+$ opensec report opensec-report/autopilot-report.json
+# → Generates professional HTML report
+```
+
+## MCP Server — AI Agent Integration
+
+```bash
+# Add to Claude Desktop / Cursor MCP config:
+{
+  "mcpServers": {
+    "opensec": {
+      "command": "npx",
+      "args": ["openseccli", "mcp"]
+    }
+  }
+}
+# Now any AI agent can call 84 security commands as tools
+```
+
+## Declarative Workflows
+
+```bash
+$ opensec workflow run workflows/web-audit.yaml --target example.com
+
+  [1/4] ✓ Header Audit (1.1s) — 11 findings
+  [2/4] ✓ CORS Check (3.3s) — 10 findings
+  [3/4] ✓ Certificate Check (0.5s) — 20 findings
+  [4/4] ✓ Tech Fingerprint (2.5s) — 1 finding
+```
+
 ## Architecture
 
 ```

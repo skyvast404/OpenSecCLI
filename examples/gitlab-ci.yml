@@ -1,0 +1,14 @@
+# Add to .gitlab-ci.yml
+security-scan:
+  image: node:22
+  stage: test
+  script:
+    - npm install -g openseccli
+    - opensec autopilot --path . --depth standard -o security-report
+    - opensec report security-report/autopilot-report.json -o security-report.html
+  artifacts:
+    paths:
+      - security-report/
+      - security-report.html
+    when: always
+  allow_failure: true

@@ -450,6 +450,50 @@ columns: [uuid, result_url]
 
 urlscan.io、Censys、SecurityTrails、Pulsedive、PhishTank、Hybrid Analysis、AlienVault OTX、EmailRep.io、IBM X-Force、Hunter.io、CIRCL hashlookup、MaxMind GeoLite2、Tor Exit Node List -- [查看 Issues](../../issues)。
 
+## Autopilot — 一条命令搞定一切
+
+```bash
+$ opensec autopilot https://target.com
+
+  ═══════════════════════════════════════════
+   OpenSecCLI Autopilot 报告
+  ═══════════════════════════════════════════
+   目标: https://target.com
+   评级:  C (54/100)
+   发现: 43 项 (2 严重, 8 高危)
+   耗时: 18.2s
+  ═══════════════════════════════════════════
+
+$ opensec report opensec-report/autopilot-report.json
+# → 生成专业 HTML 报告
+```
+
+## MCP Server — AI Agent 集成
+
+```bash
+# 添加到 Claude Desktop / Cursor MCP 配置:
+{
+  "mcpServers": {
+    "opensec": {
+      "command": "npx",
+      "args": ["openseccli", "mcp"]
+    }
+  }
+}
+# 任何 AI Agent 都可以调用 84 条安全命令作为工具
+```
+
+## 声明式工作流
+
+```bash
+$ opensec workflow run workflows/web-audit.yaml --target example.com
+
+  [1/4] ✓ 安全头审计 (1.1s) — 11 项发现
+  [2/4] ✓ CORS 检查 (3.3s) — 10 项发现
+  [3/4] ✓ 证书检查 (0.5s) — 20 项发现
+  [4/4] ✓ 技术指纹 (2.5s) — 1 项发现
+```
+
 ## 架构
 
 ```
