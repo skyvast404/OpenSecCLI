@@ -12,6 +12,7 @@ import { render } from './output.js'
 import { CliError, ERROR_ICONS } from './errors.js'
 import { EXIT_CODES, CONFIG_DIR_NAME } from './constants.js'
 import { createAdapter } from './commands/create.js'
+import { runAutopilot } from './commands/autopilot.js'
 import { SECURITY_DOMAINS } from './constants/domains.js'
 import { checkToolInstalled, getToolVersion } from './adapters/_utils/tool-runner.js'
 import { existsSync } from 'node:fs'
@@ -284,6 +285,16 @@ export function createCli(version: string): Command {
         format: format as 'table' | 'json' | 'csv' | 'yaml' | 'markdown',
         columns: ['category', 'tool', 'status', 'version'],
       })
+    })
+
+  // Built-in: autopilot
+  program
+    .command('autopilot <target>')
+    .description('Run full security assessment (one command does everything)')
+    .option('-d, --depth <depth>', 'Scan depth: quick, standard, deep', 'standard')
+    .option('-o, --output <dir>', 'Output directory for report', './opensec-report')
+    .action(async (target: string, opts) => {
+      await runAutopilot(target, opts)
     })
 
   return program
