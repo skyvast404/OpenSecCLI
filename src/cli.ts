@@ -8,11 +8,14 @@ import chalk from 'chalk'
 import { getRegistry } from './registry.js'
 import { executeCommand } from './execution.js'
 import { listAuth, saveAuth, removeAuth, loadAuth } from './auth/index.js'
+import { startMcpServer } from './mcp-server.js'
 import { render } from './output.js'
 import { CliError, ERROR_ICONS } from './errors.js'
 import { EXIT_CODES, CONFIG_DIR_NAME } from './constants.js'
 import { createAdapter } from './commands/create.js'
 import { runAutopilot } from './commands/autopilot.js'
+import { runWorkflow } from './commands/workflow.js'
+import { generateReport } from './commands/report.js'
 import { SECURITY_DOMAINS } from './constants/domains.js'
 import { checkToolInstalled, getToolVersion } from './adapters/_utils/tool-runner.js'
 import { existsSync } from 'node:fs'
@@ -295,6 +298,66 @@ export function createCli(version: string): Command {
     .option('-o, --output <dir>', 'Output directory for report', './opensec-report')
     .action(async (target: string, opts) => {
       await runAutopilot(target, opts)
+    })
+
+  // Built-in: report
+  program
+    .command('report <input>')
+    .description('Generate HTML/PDF report from scan results')
+    .option('-o, --output <file>', 'Output file path', 'opensec-report.html')
+    .option('--title <title>', 'Report title', 'OpenSecCLI Security Assessment')
+    .action(async (input: string, opts: { output: string; title: string }) => {
+      try {
+        const outputFile = await generateReport(input, opts.output, 'html', opts.title)
+        process.stderr.write(chalk.green(`\nReport generated: ${outputFile}\n`))
+      } catch (error) {
+        process.stderr.write(chalk.red(`\nError: ${(error as Error).message}\n`))
+        process.exit(EXIT_CODES.RUNTIME_ERROR)
+      }
+    })
+
+  // Built-in: mcp
+  program
+    .command('mcp')
+    .description('Start MCP server mode (for AI agent integration)')
+    .action(async () => {
+      await startMcpServer()
+    })
+
+  // Built-in: workflow
+  const workflowCmd = program
+    .command('workflow')
+    .description('Run declarative security workflows')
+
+  workflowCmd
+    .command('run <file>')
+    .description('Execute a YAML workflow file')
+    .option('--target <target>', 'Target URL or domain')
+    .option('--var <vars...>', 'Additional variables (key=value)')
+    .action(async (file: string, opts: { target?: string; var?: string[] }) => {
+      const vars: Record<string, string> = {}
+      if (opts.target) vars['target'] = opts.target
+      if (opts.var) {
+        for (const v of opts.var) {
+          const [k, ...rest] = v.split('=')
+          vars[k] = rest.join('=')
+        }
+      }
+      const results = await runWorkflow(file, vars)
+      const format = program.opts().json ? 'json' : (program.opts().format ?? 'table')
+      render(
+        results.map(r => ({
+          step: r.name,
+          command: r.command,
+          status: r.status,
+          findings: r.findings,
+          duration: `${(r.duration_ms / 1000).toFixed(1)}s`,
+        })),
+        {
+          format: format as 'table' | 'json' | 'csv' | 'yaml' | 'markdown',
+          columns: ['step', 'command', 'status', 'findings', 'duration'],
+        },
+      )
     })
 
   return program

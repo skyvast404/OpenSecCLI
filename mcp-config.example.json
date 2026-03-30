@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "opensec": {
+      "command": "npx",
+      "args": ["openseccli", "mcp"]
+    }
+  }
+}
