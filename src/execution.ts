@@ -18,6 +18,7 @@ import {
   ArgumentError,
   EmptyResultError,
 } from './errors.js'
+import { upsertFinding, recordScan, fingerprint as buildFingerprint } from './db/store.js'
 
 export async function executeCommand(
   commandId: string,
@@ -76,8 +77,34 @@ export async function executeCommand(
     result = []
   }
 
-  // 6. Render output
   const elapsed = Date.now() - startedAt
+
+  // 5b. Auto-save findings to DB (best-effort, don't fail the command)
+  try {
+    const target = extractTarget(args, commandId)
+    if (target && Array.isArray(result) && result.length > 0) {
+      const seenFps: string[] = []
+      for (const item of result as Record<string, unknown>[]) {
+        const finding = {
+          source: commandId,
+          severity: String(item.severity ?? item.risk ?? item.level ?? 'info').toLowerCase(),
+          title: String(item.title ?? item.rule_id ?? item.header ?? item.check ?? item.finding ?? item.name ?? 'Finding'),
+          detail: String(item.detail ?? item.message ?? item.description ?? item.value ?? ''),
+          file_path: (item.file_path as string | undefined) ?? (item.file as string | undefined) ?? undefined,
+          line: (item.start_line as number | undefined) ?? (item.line as number | undefined) ?? undefined,
+          cwe: (item.cwe as string | undefined) ?? undefined,
+          raw: item,
+        }
+        upsertFinding(target, finding)
+        seenFps.push(buildFingerprint(finding))
+      }
+      recordScan(target, commandId, result.length, elapsed)
+    }
+  } catch {
+    // DB save is best-effort — don't break the command
+  }
+
+  // 6. Render output
   const renderOpts: RenderOptions = {
     format: (options.format ?? 'table') as RenderOptions['format'],
     columns: command.columns,
@@ -93,6 +120,15 @@ export async function executeCommand(
     startedAt,
     finishedAt: Date.now(),
   })
+}
+
+function extractTarget(args: Record<string, unknown>, _commandId: string): string | null {
+  for (const key of ['target', 'url', 'domain', 'ip', 'host', 'path', 'file', 'image', 'hash']) {
+    if (args[key] && typeof args[key] === 'string') {
+      return args[key] as string
+    }
+  }
+  return null
 }
 
 function coerceAndValidateArgs(

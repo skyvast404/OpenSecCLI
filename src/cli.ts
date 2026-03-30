@@ -16,6 +16,7 @@ import { createAdapter } from './commands/create.js'
 import { runAutopilot } from './commands/autopilot.js'
 import { runWorkflow } from './commands/workflow.js'
 import { generateReport } from './commands/report.js'
+import { registerDbCommands } from './commands/db.js'
 import { SECURITY_DOMAINS } from './constants/domains.js'
 import { checkToolInstalled, getToolVersion } from './adapters/_utils/tool-runner.js'
 import { existsSync } from 'node:fs'
@@ -359,6 +360,9 @@ export function createCli(version: string): Command {
         },
       )
     })
+
+  // Built-in: db (finding database)
+  registerDbCommands(program)
 
   return program
 }

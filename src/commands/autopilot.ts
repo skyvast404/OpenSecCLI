@@ -11,6 +11,7 @@ import chalk from 'chalk'
 import { getRegistry } from '../registry.js'
 import { executeCommand } from '../execution.js'
 import { checkToolInstalled } from '../adapters/_utils/tool-runner.js'
+import { upsertFinding, recordScan } from '../db/store.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -485,6 +486,24 @@ export async function runAutopilot(
 
   // Aggregate findings
   const allFindings = results.flatMap(r => r.findings)
+
+  // Persist findings to DB (best-effort)
+  try {
+    for (const f of allFindings) {
+      upsertFinding(target, {
+        source: f.source,
+        severity: f.severity,
+        title: f.title,
+        detail: f.detail,
+        raw: f,
+      })
+    }
+    const totalDuration = results.reduce((sum, r) => sum + r.durationMs, 0)
+    recordScan(target, 'autopilot', allFindings.length, totalDuration)
+  } catch {
+    // DB save is best-effort — don't break autopilot
+  }
+
   const score = computeScore(allFindings)
   const grade = scoreToGrade(score)
 
