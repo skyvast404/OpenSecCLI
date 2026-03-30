@@ -8,7 +8,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/user/OpenSecCLI?style=flat-square" alt="license"></a>
   <img src="https://img.shields.io/badge/tests-337%20passed-brightgreen?style=flat-square" alt="tests">
   <img src="https://img.shields.io/badge/commands-84-blue?style=flat-square" alt="commands">
-  <img src="https://img.shields.io/badge/claude%20code%20skills-30-blueviolet?style=flat-square" alt="skills">
+  <img src="https://img.shields.io/badge/claude%20code%20skills-35-blueviolet?style=flat-square" alt="skills">
 </p>
 
 <p align="center">
